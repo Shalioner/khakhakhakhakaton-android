@@ -67,7 +67,7 @@ class CoreTest {
             RawUtterance(1, listOf(w("шум", 5100, 5300))),
             RawUtterance(0, listOf(w("речь", 5400, 9000))),
         )
-        val out = SpeakerRelabel.absorbTinySpeakers(utts, 1500)
+        val out = SpeakerRelabel.absorbTinySpeakers(utts, 1500, 1000)
         assertEquals(1, out.size)
         assertEquals(0, out[0].speakerIdx)
     }
@@ -223,5 +223,21 @@ class PunctTransferTest {
         val out = PunctTransfer.transfer(src, "Папа мыл раму!")
         assertEquals(src.map { WordGuard.normalizeWord(it.text) }, out.map { WordGuard.normalizeWord(it.text) })
         assertEquals("раму!", out[2].text)
+    }
+}
+
+class AbsorbGapTest {
+    @Test
+    fun tinySpeakerDoesNotGlueLongPauses() {
+        val w = { t: String, s: Long, e: Long -> Word(t, s, e) }
+        val utts = listOf(
+            RawUtterance(0, listOf(w("раз", 0, 3000))),
+            RawUtterance(1, listOf(w("кхм", 3100, 3300))),
+            RawUtterance(0, listOf(w("два", 3400, 6000))),
+            RawUtterance(0, listOf(w("три", 20_000, 23_000))), // через 14 с — отдельная реплика
+        )
+        val out = SpeakerRelabel.absorbTinySpeakers(utts, 1500, 1000)
+        assertEquals(2, out.size)
+        assertEquals(20_000, out[1].startMs)
     }
 }

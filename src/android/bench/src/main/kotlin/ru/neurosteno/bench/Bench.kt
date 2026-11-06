@@ -40,9 +40,12 @@ import kotlin.system.exitProcess
 /**
  * ПК-харнесс: тот же core + те же модели, что в APK, через sherpa-onnx Java API.
  * ./gradlew :bench:run --args="testdata/dev out/dev [--asr transducer|ctc] [--cluster-threshold 0.5] [--threads 8]"
+ *   [--decoding greedy_search|modified_beam_search] [--max-active-paths 4] [--window-shift-ratio 0.1]
+ *   [--vad-model <onnx>] [--chunk-pad-ms 200]
  * Вход — wav (любой частоты/каналов, PCM16/PCM24/PCM32/float). Выход — <name>.json + timings.json.
  */
 fun main(args: Array<String>) {
+    if (args.firstOrNull() == "cluster-sweep") { ClusterEmbeddings.sweep(args.drop(1)); return }
     if (args.size < 2) { System.err.println("usage: bench <in_dir> <out_dir> [options]"); exitProcess(2) }
     val inDir = File(args[0]); val outDir = File(args[1]).apply { mkdirs() }
     val opt = args.drop(2).chunked(2).associate { it[0].removePrefix("--") to it.getOrElse(1) { "" } }
@@ -53,7 +56,13 @@ fun main(args: Array<String>) {
     val cfg = PipelineConfig(
         pauseSplitMs = opt["pause-split-ms"]?.toLong() ?: 1000,
         minSpeakerTotalMs = opt["min-speaker-ms"]?.toLong() ?: 1500,
+        chunkPadMs = opt["chunk-pad-ms"]?.toLong() ?: 200,
     )
+    // A/B опций sherpa-onnx (2026-11-07): декодер ASR (оба прохода), сдвиг окна сегментации, модель VAD
+    val decoding = opt["decoding"] ?: "greedy_search"
+    val maxActivePaths = opt["max-active-paths"]?.toInt() ?: 4
+    val windowShiftRatio = opt["window-shift-ratio"]?.toFloat() ?: 0.1f
+    val vadModel = opt["vad-model"] ?: File(models, "vad/silero_vad.onnx").path
     val clusterThreshold = opt["cluster-threshold"]?.toFloat() ?: 0.5f
     val numClusters = opt["num-clusters"]?.toInt() ?: -1
     // --llm none | путь к gguf (по умолчанию модель из assets)
@@ -62,7 +71,7 @@ fun main(args: Array<String>) {
 
     val vadCfg = VadModelConfig.builder()
         .setSileroVadModelConfig(
-            SileroVadModelConfig.builder().setModel(File(models, "vad/silero_vad.onnx").path)
+            SileroVadModelConfig.builder().setModel(vadModel)
                 .setThreshold(0.5f).setMinSilenceDuration(0.3f).setMinSpeechDuration(0.2f)
                 .setWindowSize(512).setMaxSpeechDuration(20f).build(),
         ).setSampleRate(16000).setNumThreads(1).build()
@@ -89,7 +98,7 @@ fun main(args: Array<String>) {
     fun recognizerOf(mc: OfflineModelConfig) = OfflineRecognizer(
         OfflineRecognizerConfig.builder()
             .setFeatureConfig(FeatureConfig.builder().setSampleRate(16000).setFeatureDim(64).build())
-            .setOfflineModelConfig(mc).setDecodingMethod("greedy_search").build(),
+            .setOfflineModelConfig(mc).setDecodingMethod(decoding).setMaxActivePaths(maxActivePaths).build(),
     )
     val recognizer = recognizerOf(modelCfg)
     // --punct-dir: второй проход e2e-моделью только ради регистра/пунктуации (PunctTransfer)
@@ -98,7 +107,8 @@ fun main(args: Array<String>) {
         OfflineSpeakerDiarizationConfig.builder()
             .setSegmentation(
                 OfflineSpeakerSegmentationModelConfig.builder()
-                    .setPyannote(OfflineSpeakerSegmentationPyannoteModelConfig.builder().setModel(File(models, "seg/model.onnx").path).build())
+                    .setPyannote(OfflineSpeakerSegmentationPyannoteModelConfig.builder().setModel(File(models, "seg/model.onnx").path)
+                        .setWindowShiftRatio(windowShiftRatio).build())
                     .setNumThreads(threads).build(),
             )
             .setEmbedding(SpeakerEmbeddingExtractorConfig.builder().setModel(opt["emb"] ?: File(models, "spk/embedding.onnx").path).setNumThreads(threads).build())
@@ -106,8 +116,11 @@ fun main(args: Array<String>) {
             .setMinDurationOn(0.2f).setMinDurationOff(0.5f).build(),
     )
 
+    // --cluster-post on: эмбеддинги по кластерам → слияние/мелкие кластеры (ClusterEmbeddings.kt)
+    val clusterPost = ClusterEmbeddings.fromOptions(opt, opt["emb"] ?: File(models, "spk/embedding.onnx").path, threads)
     val files = inDir.listFiles { f -> f.extension.lowercase() == "wav" }?.sorted().orEmpty()
-    println("bench: ${files.size} files, asr=$asrKind threads=$threads cluster_threshold=$clusterThreshold")
+    println("bench: ${files.size} files, asr=$asrKind threads=$threads cluster_threshold=$clusterThreshold " +
+        "decoding=$decoding/$maxActivePaths shift=$windowShiftRatio vad=$vadModel chunk_pad=${cfg.chunkPadMs}")
     val timings = StringBuilder("{\n")
     var invalid = 0
     files.forEachIndexed { idx, f -> try {
@@ -160,7 +173,8 @@ fun main(args: Array<String>) {
         }.getOrElse { System.err.println("diarization failed: $it"); emptyList() }
         val tDia = System.currentTimeMillis()
 
-        var tr = TranscriptBuilder.build(words, turns, durationMs, segs, cfg = cfg)
+        val postTurns = clusterPost?.process(f.nameWithoutExtension, samples, turns, words, segs, durationMs) ?: turns
+        var tr = TranscriptBuilder.build(words, postTurns, durationMs, segs, cfg = cfg)
         val tBuild = System.currentTimeMillis()
         var llmInfo = "llm off"
         if (llm != null && tr.utterances.isNotEmpty()) {
@@ -188,7 +202,7 @@ fun main(args: Array<String>) {
     } }
     timings.append("}\n")
     File(outDir, "timings.json").writeText(timings.toString())
-    recognizer.release(); punctRecognizer?.release(); diarizer.release(); llm?.close()
+    recognizer.release(); punctRecognizer?.release(); diarizer.release(); llm?.close(); clusterPost?.close()
     if (invalid > 0) exitProcess(1)
 }
 

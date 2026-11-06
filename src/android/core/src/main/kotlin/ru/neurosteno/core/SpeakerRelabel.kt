@@ -37,7 +37,7 @@ object SpeakerRelabel {
      * Спикеры с суммарной речью < minTotalMs растворяются: их реплики переходят к спикеру
      * ближайшей по времени соседней реплики. Если спикер всего один — не трогаем.
      */
-    fun absorbTinySpeakers(utts: List<RawUtterance>, minTotalMs: Long): List<RawUtterance> {
+    fun absorbTinySpeakers(utts: List<RawUtterance>, minTotalMs: Long, maxMergeGapMs: Long): List<RawUtterance> {
         val total = HashMap<Int, Long>()
         utts.forEach { total.merge(it.speakerIdx, it.endMs - it.startMs, Long::plus) }
         if (total.size <= 1) return utts
@@ -52,7 +52,7 @@ object SpeakerRelabel {
             val dn = next?.let { sorted[it].startMs - u.endMs } ?: Long.MAX_VALUE
             val target = if (dp <= dn) sorted[prev!!].speakerIdx else sorted[next!!].speakerIdx
             u.copy(speakerIdx = target)
-        }.let(::mergeAdjacentSameSpeaker)
+        }.let { mergeAdjacentSameSpeaker(it, maxMergeGapMs) } // B1: не склеивать через длинную паузу
     }
 
     /** Соседние реплики одного спикера без пауз-разрыва склеиваются (после перенумерации/слияний). */

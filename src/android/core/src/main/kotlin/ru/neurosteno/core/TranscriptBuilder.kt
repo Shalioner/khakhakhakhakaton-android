@@ -28,7 +28,7 @@ object TranscriptBuilder {
 
         val labeled = Alignment.assign(clean, effTurns, cfg)
         var utts = Segmenter.segment(labeled, cfg)
-        utts = SpeakerRelabel.absorbTinySpeakers(utts, cfg.minSpeakerTotalMs)
+        utts = SpeakerRelabel.absorbTinySpeakers(utts, cfg.minSpeakerTotalMs, cfg.pauseSplitMs)
         utts = SpeakerRelabel.mergeAdjacentSameSpeaker(utts, cfg.pauseSplitMs)
         val names = SpeakerRelabel.relabel(utts)
 

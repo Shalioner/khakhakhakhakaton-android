@@ -11,6 +11,7 @@ import kotlinx.coroutines.withContext
 import ru.neurosteno.audio.AudioDecoder
 import ru.neurosteno.audio.PcmFile
 import ru.neurosteno.core.Chunker
+import ru.neurosteno.core.ClusterPost
 import ru.neurosteno.core.ContractValidator
 import ru.neurosteno.core.GuardedEditor
 import ru.neurosteno.core.LlmBackend
@@ -22,6 +23,7 @@ import ru.neurosteno.core.TranscriptBuilder
 import ru.neurosteno.sherpa.EngineConfig
 import ru.neurosteno.sherpa.ModelAssets
 import ru.neurosteno.sherpa.SherpaAsr
+import ru.neurosteno.sherpa.SherpaClusterEmbedder
 import ru.neurosteno.sherpa.SherpaDiarizer
 import ru.neurosteno.sherpa.SherpaVad
 import java.io.File
@@ -87,8 +89,12 @@ class Pipeline(
         val chunks = Chunker.chunks(vadSegs, durationMs, cfg)
         Log.i(TAG, "duration=${durationMs}ms vad=${vadSegs.size} chunks=${chunks.size}")
 
-        // ASR и диаризация параллельно, на раздельных пулах потоков.
-        val half = (engineCfg.numThreads / 2).coerceAtLeast(1)
+        // ASR и диаризация параллельно, на раздельных пулах потоков. Для длинных файлов (B3 ревью) —
+        // последовательно: иначе ASR-энкодер + весь сигнал во float + матрица кластеризации одновременно
+        // могут превысить память 4 ГБ телефона, а LMK убивает процесс без шанса на fallback.
+        val sequential = durationMs > cfg.parallelMaxMs
+        val half = if (sequential) engineCfg.numThreads else (engineCfg.numThreads / 2).coerceAtLeast(1)
+        if (sequential) Log.i(TAG, "long file: ASR and diarization run sequentially")
         val asrPool = Executors.newSingleThreadExecutor()
         val diaPool = Executors.newSingleThreadExecutor()
         val (words, turns) = try {
@@ -115,12 +121,16 @@ class Pipeline(
                         byChunk.flatMapIndexed { i, w -> texts?.getOrNull(i)?.let { PunctTransfer.transfer(w, it) } ?: w }
                     }
                 }
+                if (sequential) asrJob.join()
                 val diaJob = async(diaPool.asCoroutineDispatcher()) {
                     timed(Stage.DIARIZATION) {
                         try {
-                            SherpaDiarizer(assets, engineCfg.copy(numThreads = half)).use {
-                                it.run(pcm) { f -> listener.onProgress(Stage.DIARIZATION, f) }
+                            val raw = SherpaDiarizer(assets, engineCfg.copy(numThreads = half)).use {
+                                it.run(pcm, { f -> listener.onProgress(Stage.DIARIZATION, f) }, isCancelled)
                             }
+                            if (cfg.clusterPostEnabled) postCluster(raw, pcm, half, isCancelled, warnings) else raw
+                        } catch (e: InterruptedException) {
+                            throw e
                         } catch (e: Throwable) {
                             // Fallback: диаризация упала (OOM, битая модель) → один спикер.
                             Log.e(TAG, "diarization failed", e)
@@ -165,6 +175,35 @@ class Pipeline(
         }
         listener.onProgress(Stage.DONE, 1f)
         return PipelineResult(transcript, pcm, timings.toList(), System.currentTimeMillis() - t0, warnings.toList())
+    }
+
+    /**
+     * Постобработка кластеров: эмбеддинги по чистым окнам турнов → ClusterPost. Извлекатель грузится
+     * после того, как диаризатор освобождён, и закрывается сразу. Любая ошибка → исходные турны.
+     */
+    private fun postCluster(
+        turns: List<SpeakerTurn>,
+        pcm: PcmFile,
+        threads: Int,
+        isCancelled: () -> Boolean,
+        warnings: MutableList<String>,
+    ): List<SpeakerTurn> {
+        if (turns.map { it.speakerIdx }.distinct().size <= 1) return turns
+        return try {
+            val pc = ClusterPost.Config.from(cfg)
+            val embs = SherpaClusterEmbedder(context.assets, engineCfg.copy(numThreads = threads)).use {
+                it.embed(pcm, ClusterPost.windows(turns, pc), isCancelled)
+            }
+            ClusterPost.apply(turns, embs, pc).also {
+                Log.i(TAG, "cluster-post: ${turns.map { t -> t.speakerIdx }.distinct().size} -> ${it.map { t -> t.speakerIdx }.distinct().size} clusters, ${embs.size} windows")
+            }
+        } catch (e: InterruptedException) {
+            throw e
+        } catch (e: Throwable) {
+            Log.e(TAG, "cluster post-processing failed", e)
+            warnings += "Уточнение спикеров по голосу не удалось — оставлена исходная диаризация"
+            turns
+        }
     }
 
     companion object {

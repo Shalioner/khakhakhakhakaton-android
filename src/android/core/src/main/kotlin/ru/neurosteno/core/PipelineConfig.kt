@@ -32,7 +32,25 @@ data class PipelineConfig(
     val mergeClusterCosine: Float = 0.75f,
     /** Кластер, суммарно говорящий меньше, растворяется в соседях (защита от «шумовых спикеров»). */
     val minSpeakerTotalMs: Long = 1500,
+    /**
+     * Постобработка кластеров диаризации по эмбеддингам чистых окон (ClusterPost, docs/research/2026-11-07-cluster-post.md):
+     * слияние кластеров, которые эмбеддинг не различает (cross/within > clusterPostMergeRatio, у обоих
+     * ≥ clusterPostMinWindows окон). Подобрано на dev (плато 0.96–0.98, окна 3–5), проверено на test.
+     */
+    val clusterPostEnabled: Boolean = true,
+    val clusterPostMergeRatio: Float = 0.97f,
+    val clusterPostMinWindows: Int = 3,
+    /** Слияние по косинусу центроидов (>= 1 — выкл.): на dev вредит (похожие голоса cos 0.8–0.93). */
+    val clusterPostMergeCos: Float = 1.1f,
+    /**
+     * Мелкие кластеры (< мс / < доли речи) — в ближайший по голосу. Выключено: на dev DER 33.7→31.7,
+     * но cpWER speakers=5 +2.0 п.п. (критерий ≤ 1 п.п.).
+     */
+    val clusterPostTinyMs: Long = 0,
+    val clusterPostTinyFrac: Float = 0f,
     /** Бюджет LLM на файл как доля длительности аудио (0.3 = 30% от длительности). */
     val llmBudgetFraction: Double = 0.3,
     val llmEnabled: Boolean = true,
+    /** Файлы длиннее — ASR и диаризация последовательно (экономия пиковой RAM на телефоне). */
+    val parallelMaxMs: Long = 15 * 60_000L,
 )

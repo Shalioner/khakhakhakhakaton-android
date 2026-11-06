@@ -13,11 +13,14 @@ import com.k2fsa.sherpa.onnx.OfflineSpeakerSegmentationModelConfig
 import com.k2fsa.sherpa.onnx.OfflineSpeakerSegmentationPyannoteModelConfig
 import com.k2fsa.sherpa.onnx.OfflineTransducerModelConfig
 import com.k2fsa.sherpa.onnx.SileroVadModelConfig
+import com.k2fsa.sherpa.onnx.SpeakerEmbeddingExtractor
 import com.k2fsa.sherpa.onnx.SpeakerEmbeddingExtractorConfig
 import com.k2fsa.sherpa.onnx.Vad
 import com.k2fsa.sherpa.onnx.VadModelConfig
 import ru.neurosteno.audio.PcmFile
 import ru.neurosteno.core.Chunker
+import ru.neurosteno.core.EmbWindow
+import ru.neurosteno.core.WindowEmbedding
 import ru.neurosteno.core.SpeakerTurn
 import ru.neurosteno.core.SpeechSegment
 import ru.neurosteno.core.TokenWords
@@ -204,14 +207,46 @@ class SherpaDiarizer(assets: AssetManager, private val cfg: EngineConfig) : Auto
         ),
     )
 
-    fun run(pcm: PcmFile, onProgress: (Float) -> Unit = {}): List<SpeakerTurn> {
+    fun run(pcm: PcmFile, onProgress: (Float) -> Unit = {}, isCancelled: () -> Boolean = { false }): List<SpeakerTurn> {
         val samples = pcm.readAll()
+        // I1 ревью: ненулевой ответ колбэка — просьба прервать обработку [Проверить: поддерживает ли
+        // sherpa-onnx 2.0.1 прерывание]; в любом случае после возврата отмена пробрасывается.
         val segs = sd.processWithCallback(samples, callback = { done: Int, total: Int, _: Long ->
             if (total > 0) onProgress(done.toFloat() / total)
-            0
+            if (isCancelled()) 1 else 0
         })
+        if (isCancelled()) throw InterruptedException("cancelled")
         return segs.map { SpeakerTurn(it.speaker, (it.start * 1000).toLong(), (it.end * 1000).toLong()) }
     }
 
     override fun close() = sd.release()
+}
+
+/**
+ * Эмбеддинги CAM++ по чистым окнам турнов (ClusterPost.windows) для постобработки кластеров.
+ * Создаётся после диаризации (модели грузятся по очереди) и закрывается сразу после расчёта.
+ * Аудио читается окнами из PcmFile — файл целиком в RAM не нужен.
+ */
+class SherpaClusterEmbedder(assets: AssetManager, cfg: EngineConfig) : AutoCloseable {
+    private val extractor = SpeakerEmbeddingExtractor(
+        assets,
+        SpeakerEmbeddingExtractorConfig(model = ModelAssets.EMB, numThreads = cfg.numThreads),
+    )
+
+    fun embed(pcm: PcmFile, windows: List<EmbWindow>, isCancelled: () -> Boolean = { false }): List<WindowEmbedding> =
+        windows.mapNotNull { w ->
+            if (isCancelled()) throw InterruptedException("cancelled")
+            val samples = pcm.readMs(w.startMs, w.endMs)
+            if (samples.size < PcmFile.SAMPLE_RATE / 10) return@mapNotNull null
+            val s = extractor.createStream()
+            try {
+                s.acceptWaveform(samples, PcmFile.SAMPLE_RATE)
+                s.inputFinished()
+                if (!extractor.isReady(s)) null else WindowEmbedding(w, extractor.compute(s))
+            } finally {
+                s.release()
+            }
+        }
+
+    override fun close() = extractor.release()
 }
