@@ -1,2 +1,0 @@
-# khakhakhakhakaton-android
-хахахаххакатон — Android
