@@ -16,5 +16,5 @@ dependencies {
     api(project(":core"))
     api(project(":engine-audio"))
     // sherpa-onnx 2.0.1 AAR (Apache-2.0), скачивается tools/fetch_models.py в src/android/libs
-    api(files("../libs/sherpa-onnx-2.0.1.aar"))
+    api(project(":sherpa-onnx-aar"))
 }

@@ -6,16 +6,20 @@ plugins {
 android {
     namespace = "ru.neurosteno.app"
     compileSdk = 35
+    ndkVersion = "27.2.12479018" // нужен для strip нативных библиотек в release
     defaultConfig {
         applicationId = "ru.neurosteno.app"
         minSdk = 28
         targetSdk = 35
         versionCode = 1
         versionName = "0.1.0"
-        ndk { abiFilters += listOf("arm64-v8a", "x86_64") }
     }
     buildTypes {
+        debug {
+            ndk { abiFilters += listOf("arm64-v8a", "x86_64") } // x86_64 — для эмулятора
+        }
         release {
+            ndk { abiFilters += listOf("arm64-v8a") }
             isMinifyEnabled = false
             // Для хакатона подписываем debug-ключом, чтобы APK ставился без отдельного keystore.
             signingConfig = signingConfigs.getByName("debug")
@@ -35,6 +39,7 @@ dependencies {
     implementation(project(":core"))
     implementation(project(":engine-audio"))
     implementation(project(":engine-sherpa"))
+    implementation(project(":engine-llm"))
     implementation(platform("androidx.compose:compose-bom:2024.10.01"))
     implementation("androidx.compose.material3:material3")
     implementation("androidx.compose.ui:ui")

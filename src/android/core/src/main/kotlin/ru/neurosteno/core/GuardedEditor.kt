@@ -15,7 +15,7 @@ class GuardedEditor(
     private val llm: LlmBackend,
     private val clock: () -> Long = System::currentTimeMillis,
 ) {
-    data class Stats(var accepted: Int = 0, var rejected: Int = 0, var skipped: Int = 0, var elapsedMs: Long = 0)
+    data class Stats(var accepted: Int = 0, var rejected: Int = 0, var skipped: Int = 0, var alreadyClean: Int = 0, var elapsedMs: Long = 0)
 
     val system = "Ты корректор русского текста. Расставь знаки препинания и заглавные буквы. " +
         "Не добавляй, не удаляй, не заменяй и не переставляй слова. Ответь только исправленным текстом."
@@ -26,6 +26,7 @@ class GuardedEditor(
         val deadline = start + budgetMs
         val out = t.utterances.mapIndexed { i, u ->
             onProgress(i.toFloat() / t.utterances.size.coerceAtLeast(1))
+            if (!needsEdit(u.text)) { st.alreadyClean++; return@mapIndexed u }
             if (isCancelled() || clock() >= deadline) { st.skipped++; return@mapIndexed u }
             val maxTok = (WordGuard.words(u.text).size * 3 + 16).coerceAtMost(512)
             val edited = runCatching {
@@ -38,6 +39,21 @@ class GuardedEditor(
         }
         st.elapsedMs = clock() - start
         return t.copy(utterances = out) to st
+    }
+
+    /**
+     * LLM вызывается только там, где ASR не оформил текст: строчная первая буква
+     * или нет завершающего знака. GigaAM v3 e2e обычно уже ставит пунктуацию — экономим RTF.
+     */
+    fun needsEdit(text: String): Boolean {
+        val t = text.trim()
+        if (t.isEmpty()) return false
+        val first = t.firstOrNull { it.isLetter() } ?: return false
+        return first.isLowerCase() || t.last() !in TERMINAL
+    }
+
+    private companion object {
+        const val TERMINAL = ".?!…»\""
     }
 
     /** Убираем типичный мусор ответа: кавычки вокруг, префиксы «Ответ:», лишние строки. */

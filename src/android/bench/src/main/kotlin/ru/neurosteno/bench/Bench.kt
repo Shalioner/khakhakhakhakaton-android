@@ -16,6 +16,8 @@ import com.k2fsa.sherpa.onnx.SpeakerEmbeddingExtractorConfig
 import com.k2fsa.sherpa.onnx.Vad
 import com.k2fsa.sherpa.onnx.VadModelConfig
 import ru.neurosteno.core.Chunker
+import ru.neurosteno.core.GuardedEditor
+import ru.neurosteno.llm.LlamaBackend
 import ru.neurosteno.core.ContractValidator
 import ru.neurosteno.core.JsonExporter
 import ru.neurosteno.core.PipelineConfig
@@ -53,6 +55,9 @@ fun main(args: Array<String>) {
     )
     val clusterThreshold = opt["cluster-threshold"]?.toFloat() ?: 0.5f
     val numClusters = opt["num-clusters"]?.toInt() ?: -1
+    // --llm none | путь к gguf (по умолчанию модель из assets)
+    val llmPath = opt["llm"] ?: File(models, "llm/model.gguf").path
+    val llm = if (llmPath == "none" || !File(llmPath).exists()) null else LlamaBackend(llmPath, nThreads = minOf(threads, 4))
 
     val vadCfg = VadModelConfig.builder()
         .setSileroVadModelConfig(
@@ -137,7 +142,14 @@ fun main(args: Array<String>) {
         }.getOrElse { System.err.println("diarization failed: $it"); emptyList() }
         val tDia = System.currentTimeMillis()
 
-        val tr = TranscriptBuilder.build(words, turns, durationMs, segs, cfg = cfg)
+        var tr = TranscriptBuilder.build(words, turns, durationMs, segs, cfg = cfg)
+        val tBuild = System.currentTimeMillis()
+        var llmInfo = "llm off"
+        if (llm != null && tr.utterances.isNotEmpty()) {
+            val (edited, st) = GuardedEditor(llm).edit(tr, (durationMs * cfg.llmBudgetFraction).toLong().coerceAtLeast(5_000))
+            tr = edited
+            llmInfo = "llm ${System.currentTimeMillis() - tBuild} ms acc=${st.accepted} rej=${st.rejected} skip=${st.skipped} clean=${st.alreadyClean}"
+        }
         val tEnd = System.currentTimeMillis()
         val errs = ContractValidator.validate(tr)
         if (errs.isNotEmpty()) { invalid++; System.err.println("${f.name}: CONTRACT $errs") }
@@ -146,13 +158,13 @@ fun main(args: Array<String>) {
         val spk = tr.utterances.map { it.speakerId }.distinct().size
         println("%-30s audio=%7.1fs proc=%6.1fs rtf=%.3f utt=%d spk=%d (decode %d, vad %d, asr %d, diar %d ms)".format(
             f.name, durationMs / 1000.0, proc / 1000.0, proc.toDouble() / durationMs, tr.utterances.size, spk,
-            tDecode - t0, tVad - tDecode, tAsr - tVad, tDia - tAsr))
-        timings.append("  \"${f.nameWithoutExtension}\": {\"proc_ms\": $proc, \"audio_ms\": $durationMs, \"asr_ms\": ${tAsr - tVad}, \"diar_ms\": ${tDia - tAsr}}")
+            tDecode - t0, tVad - tDecode, tAsr - tVad, tDia - tAsr) + " " + llmInfo)
+        timings.append("  \"${f.nameWithoutExtension}\": {\"proc_ms\": $proc, \"audio_ms\": $durationMs, \"asr_ms\": ${tAsr - tVad}, \"diar_ms\": ${tDia - tAsr}, \"llm_ms\": ${tEnd - tBuild}}")
             .append(if (idx < files.size - 1) ",\n" else "\n")
     }
     timings.append("}\n")
     File(outDir, "timings.json").writeText(timings.toString())
-    recognizer.release(); diarizer.release()
+    recognizer.release(); diarizer.release(); llm?.close()
     if (invalid > 0) exitProcess(1)
 }
 

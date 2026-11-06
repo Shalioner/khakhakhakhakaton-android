@@ -4,4 +4,5 @@ build/
 .kotlin/
 *.iml
 app/src/main/assets/models/
-app/src/main/cpp/llama.cpp/
+engine-llm/src/main/cpp/llama.cpp/
+engine-llm/.cxx/

@@ -65,7 +65,12 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+import androidx.compose.runtime.rememberCoroutineScope
+import ru.neurosteno.core.Summarizer
 import ru.neurosteno.core.JsonExporter
 import ru.neurosteno.core.Utterance
 
@@ -204,6 +209,9 @@ fun TranscriptScreen(s: ProcState.Done, audio: Uri?, onNew: () -> Unit) {
         }
     }
     val speakers = t.utterances.map { it.speakerId }.distinct()
+    val scope = rememberCoroutineScope()
+    var summary by remember { mutableStateOf<String?>(null) }
+    var summarizing by remember { mutableStateOf(false) }
     Column(Modifier.fillMaxSize()) {
         Column(Modifier.padding(horizontal = 16.dp, vertical = 8.dp)) {
             Text(s.fileName, style = MaterialTheme.typography.titleMedium)
@@ -217,8 +225,28 @@ fun TranscriptScreen(s: ProcState.Done, audio: Uri?, onNew: () -> Unit) {
                 Button(onClick = { exporter.launch(s.fileName.substringBeforeLast('.') + ".json") }) {
                     Icon(Icons.Default.Save, null); Spacer(Modifier.width(6.dp)); Text("Экспорт JSON")
                 }
-                OutlinedButton(onClick = onNew) { Text("Новый файл") }
+                OutlinedButton(enabled = !summarizing && t.utterances.isNotEmpty(), onClick = {
+                    summarizing = true
+                    scope.launch {
+                        summary = withContext(Dispatchers.Default) {
+                            runCatching {
+                                LlmProvider.factory.create(ctx)?.use { Summarizer(it).summarize(t) } ?: "Локальная LLM недоступна"
+                            }.getOrElse { "Ошибка LLM: ${it.message}" }
+                        }
+                        summarizing = false
+                    }
+                }) { Text(if (summarizing) "Протокол…" else "Протокол") }
+                OutlinedButton(onClick = onNew) { Text("Новый") }
                 if (playingIdx >= 0) IconButton(onClick = { player?.pause(); playingIdx = -1 }) { Icon(Icons.Default.Stop, "Стоп") }
+            }
+        }
+        summary?.let {
+            Card(Modifier.fillMaxWidth().padding(horizontal = 12.dp)) {
+                Column(Modifier.padding(12.dp)) {
+                    Text("Протокол (локальная LLM, может содержать неточности)", style = MaterialTheme.typography.labelMedium)
+                    Spacer(Modifier.height(4.dp))
+                    Text(it, style = MaterialTheme.typography.bodyMedium)
+                }
             }
         }
         if (t.utterances.isEmpty()) {

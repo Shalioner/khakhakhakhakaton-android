@@ -148,3 +148,30 @@ class GuardedEditorTest {
         assertEquals("раз два", out.utterances[2].text)
     }
 }
+
+class LlmGatingTest {
+    private val ed = GuardedEditor(object : LlmBackend {
+        override fun complete(system: String, user: String, maxTokens: Int, shouldStop: () -> Boolean) = error("must not be called")
+        override fun close() {}
+    })
+
+    @Test
+    fun cleanTextSkipsLlm() {
+        assertTrue(!ed.needsEdit("Привет, как дела?"))
+        assertTrue(ed.needsEdit("привет как дела"))
+        assertTrue(ed.needsEdit("Привет как дела"))
+        val t = Transcript(listOf(Utterance("speaker_1", 0, 100, "Готово.")), 100)
+        val (_, st) = ed.edit(t, 1000)
+        assertEquals(1, st.alreadyClean)
+    }
+
+    @Test
+    fun summarizerPromptTruncates() {
+        val t = Transcript(List(500) { Utterance("speaker_1", it * 10L, it * 10L + 5, "фраза номер $it") }, 6000)
+        val p = Summarizer(object : LlmBackend {
+            override fun complete(system: String, user: String, maxTokens: Int, shouldStop: () -> Boolean) = ""
+            override fun close() {}
+        }).prompt(t, 500)
+        assertTrue(p.length <= 520 && p.endsWith("…\n"))
+    }
+}
