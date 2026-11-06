@@ -35,7 +35,7 @@ class BenchActivity : Activity() {
                     File(out, f.nameWithoutExtension + ".json").writeText(JsonExporter.toJson(r.transcript))
                     val mem = Debug.getNativeHeapAllocatedSize() / (1 shl 20)
                     val stages = r.timings.joinToString(",") { "\"${it.stage.name.lowercase()}_ms\":${it.ms}" }
-                    "\"${f.nameWithoutExtension}\":{\"audio_ms\":${r.transcript.durationMs},\"total_ms\":${r.totalMs},\"rtf\":${"%.4f".format(java.util.Locale.US, r.rtf)},\"native_heap_mb\":$mem,$stages}"
+                    "\"${f.nameWithoutExtension}\":{\"audio_ms\":${r.transcript.durationMs},\"total_ms\":${r.totalMs},\"proc_ms\":${r.totalMs},\"rtf\":${"%.4f".format(java.util.Locale.US, r.rtf)},\"native_heap_mb\":$mem,$stages}"
                 }.getOrElse { "\"${f.nameWithoutExtension}\":{\"error\":${JsonExporter.quote(it.toString())}}" }
                 Log.i(Pipeline.TAG, "bench $line")
                 timings.append("  ").append(line).append(if (i < files.size - 1) ",\n" else "\n")
