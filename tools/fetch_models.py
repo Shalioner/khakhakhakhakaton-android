@@ -20,7 +20,10 @@ GH = "https://github.com/k2-fsa/sherpa-onnx/releases/download"
 SHERPA_VER = "2.0.1"
 
 ARCHIVES = {
+    # e2e-модель: регистр и пунктуация (числа цифрами) — только для переноса пунктуации
     "asr": f"{GH}/asr-models/sherpa-onnx-nemo-transducer-punct-giga-am-v3-russian-2025-12-16.tar.bz2",
+    # основная модель слов: без пунктуации, числа словами, таймстемпы слов
+    "asr_words": f"{GH}/asr-models/sherpa-onnx-nemo-transducer-giga-am-v3-russian-2025-12-16.tar.bz2",
     "asr_ctc": f"{GH}/asr-models/sherpa-onnx-nemo-ctc-giga-am-v3-russian-2025-12-16.tar.bz2",
     "seg": f"{GH}/speaker-segmentation-models/sherpa-onnx-pyannote-segmentation-3-0.tar.bz2",
 }
@@ -85,7 +88,7 @@ def main() -> int:
         download(url, LIBS / name)
     for rel, url in FILES.items():
         download(url, ASSETS / rel)
-    keys = ["asr", "seg"] + (["asr_ctc"] if a.with_ctc else [])
+    keys = ["asr", "asr_words", "seg"] + (["asr_ctc"] if a.with_ctc else [])
     for k in keys:
         arc = download(ARCHIVES[k], CACHE / Path(ARCHIVES[k]).name)
         extract(arc, ASSETS / k)

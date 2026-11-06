@@ -26,7 +26,10 @@ import ru.neurosteno.core.Word
 /** Пути моделей внутри assets (кладёт tools/fetch_models.py). */
 object ModelAssets {
     const val VAD = "models/vad/silero_vad.onnx"
+    /** e2e (регистр/пунктуация, числа цифрами) — только для PunctTransfer. */
     const val ASR_DIR = "models/asr"
+    /** Основная модель слов: без пунктуации, числа словами. */
+    const val ASR_WORDS_DIR = "models/asr_words"
     const val ASR_CTC_DIR = "models/asr_ctc"
     const val SEG = "models/seg/model.onnx"
     const val EMB = "models/spk/embedding.onnx"
@@ -97,18 +100,22 @@ class SherpaVad(assets: AssetManager, private val cfg: EngineConfig) : AutoClose
 }
 
 /** GigaAM v3 через OfflineRecognizer; распознаёт чанки и возвращает слова в абсолютном времени. */
-class SherpaAsr(assets: AssetManager, private val cfg: EngineConfig) : AutoCloseable {
+class SherpaAsr(
+    assets: AssetManager,
+    private val cfg: EngineConfig,
+    private val dir: String = ModelAssets.ASR_WORDS_DIR,
+) : AutoCloseable {
     private val recognizer: OfflineRecognizer
 
     init {
         val model = when (cfg.asrKind) {
             AsrKind.TRANSDUCER -> OfflineModelConfig(
                 transducer = OfflineTransducerModelConfig(
-                    encoder = "${ModelAssets.ASR_DIR}/encoder.int8.onnx",
-                    decoder = "${ModelAssets.ASR_DIR}/decoder.onnx",
-                    joiner = "${ModelAssets.ASR_DIR}/joiner.onnx",
+                    encoder = "$dir/encoder.int8.onnx",
+                    decoder = "$dir/decoder.onnx",
+                    joiner = "$dir/joiner.onnx",
                 ),
-                tokens = "${ModelAssets.ASR_DIR}/tokens.txt",
+                tokens = "$dir/tokens.txt",
                 modelType = "nemo_transducer",
                 numThreads = cfg.numThreads,
             )
@@ -155,6 +162,28 @@ class SherpaAsr(assets: AssetManager, private val cfg: EngineConfig) : AutoClose
         }
         return words
     }
+
+    /** Только текст по тем же чанкам (для переноса пунктуации e2e-модели). */
+    fun texts(pcm: PcmFile, chunks: List<Chunker.Chunk>, onProgress: (Float) -> Unit = {}, isCancelled: () -> Boolean = { false }): List<String> =
+        chunks.mapIndexed { i, c ->
+            if (isCancelled()) throw InterruptedException("cancelled")
+            val samples = pcm.readMs(c.startMs, c.endMs)
+            onProgress((i + 1f) / chunks.size)
+            if (samples.isEmpty()) return@mapIndexed ""
+            val stream = recognizer.createStream()
+            try {
+                stream.acceptWaveform(samples, PcmFile.SAMPLE_RATE)
+                recognizer.decode(stream)
+                recognizer.getResult(stream).text
+            } finally { stream.release() }
+        }
+
+    /** Слова по чанкам (список на чанк), чтобы потом перенести пунктуацию почанково. */
+    fun recognizeByChunk(pcm: PcmFile, chunks: List<Chunker.Chunk>, onProgress: (Float) -> Unit = {}, isCancelled: () -> Boolean = { false }): List<List<Word>> =
+        chunks.mapIndexed { i, c ->
+            onProgress((i + 1f) / chunks.size)
+            recognize(pcm, listOf(c), isCancelled = isCancelled)
+        }
 
     override fun close() = recognizer.release()
 }

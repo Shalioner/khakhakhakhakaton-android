@@ -197,3 +197,31 @@ class VadRefineTest {
         assertEquals(0L to 300L, b2[0])
     }
 }
+
+class PunctTransferTest {
+    private fun ws(vararg t: String) = t.mapIndexed { i, s -> Word(s, i * 100L, i * 100L + 90) }
+
+    @Test
+    fun transfersCaseAndPunctuation() {
+        val out = PunctTransfer.transfer(ws("привет", "как", "дела"), "Привет, как дела?")
+        assertEquals(listOf("Привет,", "как", "дела?"), out.map { it.text })
+        assertEquals(listOf(0L, 100L, 200L), out.map { it.startMs })
+    }
+
+    @Test
+    fun numbersStayWordsWithTrailingPunct() {
+        val out = PunctTransfer.transfer(
+            ws("сейчас", "живёт", "двадцать", "семь", "котов", "три", "тысячи"),
+            "Сейчас живёт 27 котов. 3 000.",
+        )
+        assertEquals(listOf("Сейчас", "живёт", "двадцать", "семь", "котов.", "Три", "тысячи."), out.map { it.text })
+    }
+
+    @Test
+    fun neverChangesWords() {
+        val src = ws("мама", "мыла", "раму")
+        val out = PunctTransfer.transfer(src, "Папа мыл раму!")
+        assertEquals(src.map { WordGuard.normalizeWord(it.text) }, out.map { WordGuard.normalizeWord(it.text) })
+        assertEquals("раму!", out[2].text)
+    }
+}

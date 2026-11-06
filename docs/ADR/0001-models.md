@@ -7,7 +7,8 @@
 |---|---|---|---|---|
 | Рантайм | sherpa-onnx **v2.0.1** AAR (`sherpa-onnx-2.0.1.aar`) | 49 MB | Apache-2.0 | Для ПК-бенча: `sherpa-onnx-jvm-2.0.1.jar` + `sherpa-onnx-native-lib-win-x64-2.0.1.jar` |
 | VAD | `silero_vad.onnx` (tag `asr-models`) | 0.6 MB | MIT [Проверить] | Сегменты в сэмплах |
-| ASR | **GigaAM v3 e2e RNNT int8** `sherpa-onnx-nemo-transducer-punct-giga-am-v3-russian-2025-12-16` | 170 MB (encoder 225 MB) | MIT | Потокенные timestamps; сразу пунктуация и регистр; `modelType="nemo_transducer"` |
+| ASR (слова) | **GigaAM v3 RNNT int8** `sherpa-onnx-nemo-transducer-giga-am-v3-russian-2025-12-16` | 167 MB | MIT | Числа словами, таймстемпы токенов. Добавлено 2026-11-07: e2e-модель пишет числа цифрами (test WER 7.0 → 0.9 %) |
+| ASR (пунктуация) | **GigaAM v3 e2e RNNT int8** `sherpa-onnx-nemo-transducer-punct-giga-am-v3-russian-2025-12-16` | 170 MB (encoder 225 MB) | MIT | Потокенные timestamps; сразу пунктуация и регистр; `modelType="nemo_transducer"` |
 | ASR (A/B) | GigaAM v3 CTC `sherpa-onnx-nemo-ctc-giga-am-v3-russian-2025-12-16` | 163 MB | MIT | CTC-таймстемпы по кадрам, возможно точнее для границ |
 | Сегментация | `sherpa-onnx-pyannote-segmentation-3-0` | 7 MB | MIT | |
 | Эмбеддинги | `3dspeaker_speech_campplus_sv_zh_en_16k-common_advanced.onnx` | 28 MB | Apache-2.0 [Проверить] | Русской модели нет, языконезависимая — проверить на bench |

@@ -15,10 +15,12 @@ import ru.neurosteno.core.ContractValidator
 import ru.neurosteno.core.GuardedEditor
 import ru.neurosteno.core.LlmBackend
 import ru.neurosteno.core.PipelineConfig
+import ru.neurosteno.core.PunctTransfer
 import ru.neurosteno.core.SpeakerTurn
 import ru.neurosteno.core.Transcript
 import ru.neurosteno.core.TranscriptBuilder
 import ru.neurosteno.sherpa.EngineConfig
+import ru.neurosteno.sherpa.ModelAssets
 import ru.neurosteno.sherpa.SherpaAsr
 import ru.neurosteno.sherpa.SherpaDiarizer
 import ru.neurosteno.sherpa.SherpaVad
@@ -93,9 +95,24 @@ class Pipeline(
             coroutineScope {
                 val asrJob = async(asrPool.asCoroutineDispatcher()) {
                     timed(Stage.ASR) {
-                        SherpaAsr(assets, engineCfg.copy(numThreads = half)).use {
-                            it.recognize(pcm, chunks, { f -> listener.onProgress(Stage.ASR, f) }, isCancelled)
+                        val ec = engineCfg.copy(numThreads = half)
+                        // Проход 1: слова и тайминги (модель без пунктуации, числа словами).
+                        val byChunk = SherpaAsr(assets, ec, ModelAssets.ASR_WORDS_DIR).use {
+                            it.recognizeByChunk(pcm, chunks, { f -> listener.onProgress(Stage.ASR, f * 0.5f) }, isCancelled)
                         }
+                        // Проход 2: e2e-модель только ради регистра/пунктуации; модели грузятся по очереди (RAM).
+                        val texts = try {
+                            SherpaAsr(assets, ec, ModelAssets.ASR_DIR).use {
+                                it.texts(pcm, chunks, { f -> listener.onProgress(Stage.ASR, 0.5f + f * 0.5f) }, isCancelled)
+                            }
+                        } catch (e: InterruptedException) {
+                            throw e
+                        } catch (e: Throwable) {
+                            Log.e(TAG, "punct pass failed", e)
+                            warnings += "Пунктуация ASR недоступна — текст без знаков"
+                            null
+                        }
+                        byChunk.flatMapIndexed { i, w -> texts?.getOrNull(i)?.let { PunctTransfer.transfer(w, it) } ?: w }
                     }
                 }
                 val diaJob = async(diaPool.asCoroutineDispatcher()) {

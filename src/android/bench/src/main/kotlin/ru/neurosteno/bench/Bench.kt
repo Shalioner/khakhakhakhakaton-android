@@ -21,6 +21,7 @@ import ru.neurosteno.llm.LlamaBackend
 import ru.neurosteno.core.ContractValidator
 import ru.neurosteno.core.JsonExporter
 import ru.neurosteno.core.PipelineConfig
+import ru.neurosteno.core.PunctTransfer
 import ru.neurosteno.core.SpeakerTurn
 import ru.neurosteno.core.SpeechSegment
 import ru.neurosteno.core.TokenWords
@@ -79,11 +80,20 @@ fun main(args: Array<String>) {
             )
             .setTokens(File(d, "tokens.txt").path).setModelType("nemo_transducer").setNumThreads(threads).build()
     }
-    val recognizer = OfflineRecognizer(
+    fun rnnt(d: File) = OfflineModelConfig.builder()
+        .setTransducer(
+            OfflineTransducerModelConfig.builder().setEncoder(File(d, "encoder.int8.onnx").path)
+                .setDecoder(File(d, "decoder.onnx").path).setJoiner(File(d, "joiner.onnx").path).build(),
+        )
+        .setTokens(File(d, "tokens.txt").path).setModelType("nemo_transducer").setNumThreads(threads).build()
+    fun recognizerOf(mc: OfflineModelConfig) = OfflineRecognizer(
         OfflineRecognizerConfig.builder()
             .setFeatureConfig(FeatureConfig.builder().setSampleRate(16000).setFeatureDim(64).build())
-            .setOfflineModelConfig(modelCfg).setDecodingMethod("greedy_search").build(),
+            .setOfflineModelConfig(mc).setDecodingMethod("greedy_search").build(),
     )
+    val recognizer = recognizerOf(modelCfg)
+    // --punct-dir: второй проход e2e-моделью только ради регистра/пунктуации (PunctTransfer)
+    val punctRecognizer = opt["punct-dir"]?.let { recognizerOf(rnnt(File(it))) }
     val diarizer = OfflineSpeakerDiarization(
         OfflineSpeakerDiarizationConfig.builder()
             .setSegmentation(
@@ -132,8 +142,16 @@ fun main(args: Array<String>) {
             stream.acceptWaveform(samples.copyOfRange(a, b), 16000)
             recognizer.decode(stream)
             val r = recognizer.getResult(stream)
-            words += TokenWords.toWords(r.tokens, r.timestamps, c.startMs, c.endMs)
+            var cw = TokenWords.toWords(r.tokens, r.timestamps, c.startMs, c.endMs)
             stream.release()
+            if (punctRecognizer != null && cw.isNotEmpty()) {
+                val ps = punctRecognizer.createStream()
+                ps.acceptWaveform(samples.copyOfRange(a, b), 16000)
+                punctRecognizer.decode(ps)
+                cw = PunctTransfer.transfer(cw, punctRecognizer.getResult(ps).text)
+                ps.release()
+            }
+            words += cw
         }
         val tAsr = System.currentTimeMillis()
 
@@ -170,7 +188,7 @@ fun main(args: Array<String>) {
     } }
     timings.append("}\n")
     File(outDir, "timings.json").writeText(timings.toString())
-    recognizer.release(); diarizer.release(); llm?.close()
+    recognizer.release(); punctRecognizer?.release(); diarizer.release(); llm?.close()
     if (invalid > 0) exitProcess(1)
 }
 
