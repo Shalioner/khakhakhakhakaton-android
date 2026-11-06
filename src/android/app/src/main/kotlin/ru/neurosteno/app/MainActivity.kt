@@ -124,7 +124,10 @@ fun App(shared: Uri?) {
     Scaffold(topBar = { TopAppBar(title = { Text("Нейро-стенографист") }) }) { pad ->
         Box(Modifier.padding(pad).fillMaxSize()) {
             when (val s = state) {
-                is ProcState.Idle -> ImportScreen { picker.launch(arrayOf("audio/*", "video/mp4", "application/ogg")) }
+                is ProcState.Idle -> ImportScreen(
+                    onPick = { picker.launch(arrayOf("audio/*", "video/mp4", "application/ogg")) },
+                    onRecorded = { f -> startProcessing(Uri.fromFile(f)) },
+                )
                 is ProcState.Running -> ProgressScreen(s) { ProcessingService.cancel(ctx) }
                 is ProcState.Done -> TranscriptScreen(s, audioUri?.let(Uri::parse)) {
                     ProcessingRepository.state.value = ProcState.Idle
@@ -140,7 +143,42 @@ fun App(shared: Uri?) {
 }
 
 @Composable
-fun ImportScreen(onPick: () -> Unit) {
+fun ImportScreen(onPick: () -> Unit, onRecorded: (java.io.File) -> Unit) {
+    val ctx = LocalContext.current
+    var recorder by remember { mutableStateOf<WavRecorder?>(null) }
+    var recMs by remember { mutableLongStateOf(0L) }
+    var recLevel by remember { mutableStateOf(0f) }
+    fun startRec() {
+        val f = java.io.File(ctx.cacheDir, "record_${System.currentTimeMillis()}.wav")
+        recorder = runCatching { WavRecorder(f).also { it.start() } }
+            .onFailure { Toast.makeText(ctx, "Микрофон недоступен: ${it.message}", Toast.LENGTH_LONG).show() }
+            .getOrNull()
+    }
+    val micPermission = rememberLauncherForActivityResult(ActivityResultContracts.RequestPermission()) { ok ->
+        if (ok) startRec() else Toast.makeText(ctx, "Нет разрешения на микрофон", Toast.LENGTH_SHORT).show()
+    }
+    LaunchedEffect(recorder) {
+        while (recorder != null) { recMs = recorder!!.recordedMs; recLevel = recorder!!.level; delay(100) }
+    }
+    DisposableEffect(Unit) { onDispose { recorder?.stop() } }
+    recorder?.let { r ->
+        Column(
+            Modifier.fillMaxSize().padding(24.dp),
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.CenterHorizontally,
+        ) {
+            Text("● Идёт запись", color = Color(0xFFE53935), style = MaterialTheme.typography.headlineSmall)
+            Spacer(Modifier.height(8.dp))
+            Text(fmtMs(recMs), style = MaterialTheme.typography.displaySmall)
+            Spacer(Modifier.height(12.dp))
+            LinearProgressIndicator(progress = { recLevel.coerceIn(0f, 1f) }, modifier = Modifier.fillMaxWidth())
+            Spacer(Modifier.height(24.dp))
+            Button(onClick = { recorder = null; onRecorded(r.stop()) }, modifier = Modifier.fillMaxWidth().height(56.dp)) {
+                Icon(Icons.Default.Stop, null); Spacer(Modifier.width(8.dp)); Text("Остановить и расшифровать")
+            }
+        }
+        return
+    }
     Column(
         Modifier.fillMaxSize().padding(24.dp),
         verticalArrangement = Arrangement.Center,
@@ -156,6 +194,15 @@ fun ImportScreen(onPick: () -> Unit) {
         )
         Spacer(Modifier.height(24.dp))
         Button(onClick = onPick, modifier = Modifier.fillMaxWidth().height(56.dp)) { Text("Выбрать аудиофайл") }
+        Spacer(Modifier.height(8.dp))
+        OutlinedButton(
+            onClick = {
+                if (androidx.core.content.ContextCompat.checkSelfPermission(ctx, Manifest.permission.RECORD_AUDIO) ==
+                    android.content.pm.PackageManager.PERMISSION_GRANTED) startRec()
+                else micPermission.launch(Manifest.permission.RECORD_AUDIO)
+            },
+            modifier = Modifier.fillMaxWidth().height(56.dp),
+        ) { Text("Записать с микрофона") }
         Spacer(Modifier.height(8.dp))
         Text("wav, mp3, m4a, ogg, opus, flac, amr", style = MaterialTheme.typography.bodySmall)
     }

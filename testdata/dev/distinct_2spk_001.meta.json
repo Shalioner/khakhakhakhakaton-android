@@ -1,0 +1,63 @@
+{
+ "duration_ms": 122774,
+ "source": "dirs",
+ "conditions": {
+  "speakers": 2,
+  "duration": "5m",
+  "quality": "clean",
+  "dynamics": "overlap",
+  "origin": "synthetic",
+  "voices": "distinct"
+ },
+ "params": {
+  "overlap_prob": 0.2,
+  "max_overlap": 0.2,
+  "max_pause": 1.5,
+  "snr_db": null,
+  "seed": 15
+ },
+ "speakers_src": [
+  "S2",
+  "S1"
+ ],
+ "utterances_src": [
+  ".cache\\tts\\src_dev_distinct\\S2\\038.wav",
+  ".cache\\tts\\src_dev_distinct\\S1\\011.wav",
+  ".cache\\tts\\src_dev_distinct\\S2\\049.wav",
+  ".cache\\tts\\src_dev_distinct\\S1\\009.wav",
+  ".cache\\tts\\src_dev_distinct\\S2\\033.wav",
+  ".cache\\tts\\src_dev_distinct\\S1\\020.wav",
+  ".cache\\tts\\src_dev_distinct\\S2\\046.wav",
+  ".cache\\tts\\src_dev_distinct\\S1\\019.wav",
+  ".cache\\tts\\src_dev_distinct\\S2\\047.wav",
+  ".cache\\tts\\src_dev_distinct\\S1\\006.wav",
+  ".cache\\tts\\src_dev_distinct\\S2\\039.wav",
+  ".cache\\tts\\src_dev_distinct\\S1\\024.wav",
+  ".cache\\tts\\src_dev_distinct\\S2\\045.wav",
+  ".cache\\tts\\src_dev_distinct\\S1\\002.wav",
+  ".cache\\tts\\src_dev_distinct\\S2\\034.wav",
+  ".cache\\tts\\src_dev_distinct\\S1\\001.wav",
+  ".cache\\tts\\src_dev_distinct\\S2\\028.wav",
+  ".cache\\tts\\src_dev_distinct\\S1\\022.wav",
+  ".cache\\tts\\src_dev_distinct\\S2\\036.wav",
+  ".cache\\tts\\src_dev_distinct\\S1\\000.wav",
+  ".cache\\tts\\src_dev_distinct\\S2\\040.wav",
+  ".cache\\tts\\src_dev_distinct\\S1\\007.wav",
+  ".cache\\tts\\src_dev_distinct\\S2\\026.wav",
+  ".cache\\tts\\src_dev_distinct\\S1\\005.wav",
+  ".cache\\tts\\src_dev_distinct\\S2\\037.wav",
+  ".cache\\tts\\src_dev_distinct\\S1\\004.wav",
+  ".cache\\tts\\src_dev_distinct\\S2\\041.wav",
+  ".cache\\tts\\src_dev_distinct\\S1\\010.wav",
+  ".cache\\tts\\src_dev_distinct\\S2\\027.wav",
+  ".cache\\tts\\src_dev_distinct\\S1\\012.wav",
+  ".cache\\tts\\src_dev_distinct\\S2\\043.wav",
+  ".cache\\tts\\src_dev_distinct\\S1\\014.wav",
+  ".cache\\tts\\src_dev_distinct\\S2\\035.wav",
+  ".cache\\tts\\src_dev_distinct\\S1\\017.wav",
+  ".cache\\tts\\src_dev_distinct\\S2\\029.wav",
+  ".cache\\tts\\src_dev_distinct\\S1\\021.wav",
+  ".cache\\tts\\src_dev_distinct\\S2\\044.wav",
+  ".cache\\tts\\src_dev_distinct\\S1\\008.wav"
+ ]
+}

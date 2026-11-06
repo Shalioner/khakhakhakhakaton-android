@@ -71,7 +71,7 @@ fun main(args: Array<String>) {
             .setNemo(OfflineNemoEncDecCtcModelConfig.builder().setModel(File(ctcDir, "model.int8.onnx").path).build())
             .setTokens(File(ctcDir, "tokens.txt").path).setNumThreads(threads).build()
     } else {
-        val d = File(models, "asr")
+        val d = File(opt["asr-dir"] ?: File(models, "asr").path)
         OfflineModelConfig.builder()
             .setTransducer(
                 OfflineTransducerModelConfig.builder().setEncoder(File(d, "encoder.int8.onnx").path)
