@@ -1,0 +1,118 @@
+package ru.neurosteno.core
+
+import kotlin.test.Test
+import kotlin.test.assertEquals
+import kotlin.test.assertTrue
+
+class CoreTest {
+
+    private fun w(t: String, s: Long, e: Long, c: Float? = null) = Word(t, s, e, c)
+
+    @Test
+    fun alignmentByMaxOverlap() {
+        val turns = listOf(SpeakerTurn(7, 0, 1000), SpeakerTurn(3, 1000, 2000))
+        val lw = Alignment.assign(listOf(w("а", 100, 400), w("б", 900, 1300), w("в", 1500, 1800)), turns)
+        assertEquals(listOf(7, 3, 3), lw.map { it.speakerIdx })
+    }
+
+    @Test
+    fun smoothingRemovesIsolatedWordButKeepsBackchannel() {
+        val turns = listOf(
+            SpeakerTurn(0, 0, 1000), SpeakerTurn(1, 1000, 1200), SpeakerTurn(0, 1200, 3000),
+            SpeakerTurn(1, 3000, 3400), SpeakerTurn(0, 3400, 5000),
+        )
+        val words = listOf(
+            w("раз", 100, 900), w("два", 1000, 1200), w("три", 1300, 2900),
+            w("угу", 3000, 3400), w("четыре", 3500, 4500),
+        )
+        val lw = Alignment.assign(words, turns)
+        assertEquals(listOf(0, 0, 0, 1, 0), lw.map { it.speakerIdx })
+    }
+
+    @Test
+    fun noTurnsMeansOneSpeaker() {
+        val t = TranscriptBuilder.build(listOf(w("привет", 0, 500), w("мир", 600, 900)), emptyList(), 1000)
+        assertEquals(1, t.utterances.size)
+        assertEquals("speaker_1", t.utterances[0].speakerId)
+        assertEquals("привет мир", t.utterances[0].text)
+    }
+
+    @Test
+    fun pauseSplitsUtterance() {
+        val turns = listOf(SpeakerTurn(0, 0, 10_000))
+        val t = TranscriptBuilder.build(listOf(w("а", 0, 300), w("б", 2000, 2300)), turns, 10_000)
+        assertEquals(2, t.utterances.size)
+    }
+
+    @Test
+    fun relabelByFirstAppearance() {
+        val turns = listOf(SpeakerTurn(5, 0, 1000), SpeakerTurn(2, 1000, 2000), SpeakerTurn(5, 2000, 3000))
+        val words = listOf(w("один", 0, 900), w("два", 1100, 1900), w("три", 2100, 2900))
+        val t = TranscriptBuilder.build(words, turns, 3000, cfg = PipelineConfig(minSpeakerTotalMs = 0))
+        assertEquals(listOf("speaker_1", "speaker_2", "speaker_1"), t.utterances.map { it.speakerId })
+        assertTrue(ContractValidator.validate(t).isEmpty())
+    }
+
+    @Test
+    fun nonSpeechSingleLowConfTokenDropped() {
+        val u = RawUtterance(0, listOf(w("мяу", 0, 200, 0.2f)))
+        assertTrue(Segmenter.isNonSpeech(u, PipelineConfig()))
+        assertTrue(!Segmenter.isNonSpeech(RawUtterance(0, listOf(w("да", 0, 200, 0.9f))), PipelineConfig()))
+    }
+
+    @Test
+    fun tinySpeakerAbsorbed() {
+        val utts = listOf(
+            RawUtterance(0, listOf(w("длинная", 0, 5000))),
+            RawUtterance(1, listOf(w("шум", 5100, 5300))),
+            RawUtterance(0, listOf(w("речь", 5400, 9000))),
+        )
+        val out = SpeakerRelabel.absorbTinySpeakers(utts, 1500)
+        assertEquals(1, out.size)
+        assertEquals(0, out[0].speakerIdx)
+    }
+
+    @Test
+    fun centroidMerge() {
+        val m = SpeakerRelabel.mergeByCentroids(
+            mapOf(0 to floatArrayOf(1f, 0f), 1 to floatArrayOf(0.99f, 0.05f), 2 to floatArrayOf(0f, 1f)), 0.9f,
+        )
+        assertEquals(m[0], m[1])
+        assertTrue(m[0] != m[2])
+    }
+
+    @Test
+    fun wordGuard() {
+        assertTrue(WordGuard.sameWords("привет как дела", "Привет! Как дела?"))
+        assertTrue(WordGuard.sameWords("ёлка", "Елка."))
+        assertTrue(!WordGuard.sameWords("привет как дела", "Привет, как твои дела?"))
+        assertEquals("привет как дела", WordGuard.accept("привет как дела", "Привет, как твои дела?"))
+        assertEquals("Привет, как дела?", WordGuard.accept("привет как дела", "Привет, как дела?"))
+    }
+
+    @Test
+    fun jsonContractShape() {
+        val t = Transcript(listOf(Utterance("speaker_1", 1250, 4380, "Добрый \"день\"!")), 5000)
+        val json = JsonExporter.toJson(t, pretty = false)
+        assertEquals("{\"transcript\":[{\"speaker_id\":\"speaker_1\",\"start_ms\":1250,\"end_ms\":4380,\"text\":\"Добрый \\\"день\\\"!\"}]}", json)
+    }
+
+    @Test
+    fun validatorCatchesErrors() {
+        val t = Transcript(listOf(Utterance("speaker_2", 100, 50, " ")), 40)
+        assertTrue(ContractValidator.validate(t).size >= 4)
+    }
+
+    @Test
+    fun wer() {
+        assertEquals(0.0, Metrics.wer("Привет, мир!", "привет мир"))
+        assertEquals(0.5, Metrics.wer("привет мир", "привет"))
+    }
+
+    @Test
+    fun wordsClampedToDuration() {
+        val t = TranscriptBuilder.build(listOf(w("конец", 900, 1200)), emptyList(), 1000)
+        assertEquals(1000, t.utterances[0].endMs)
+        assertTrue(ContractValidator.validate(t).isEmpty())
+    }
+}

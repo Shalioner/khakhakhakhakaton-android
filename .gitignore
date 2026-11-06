@@ -40,3 +40,9 @@ artifacts/demo/*.mov
 artifacts/demo/*.mkv
 artifacts/demo/*.wav
 
+
+# Models and caches (fetched by tools/fetch_models.py)
+.cache/
+src/android/libs/
+*.gguf
+*.onnx

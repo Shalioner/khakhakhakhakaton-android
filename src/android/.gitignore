@@ -1,0 +1,7 @@
+local.properties
+.gradle/
+build/
+.kotlin/
+*.iml
+app/src/main/assets/models/
+app/src/main/cpp/llama.cpp/
