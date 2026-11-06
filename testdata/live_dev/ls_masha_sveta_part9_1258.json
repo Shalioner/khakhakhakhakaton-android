@@ -1,0 +1,220 @@
+{
+ "transcript": [
+  {
+   "speaker_id": "speaker_1",
+   "start_ms": 300,
+   "end_ms": 2620,
+   "text": "Вот-вот, у меня вечная нехватка времени."
+  },
+  {
+   "speaker_id": "speaker_2",
+   "start_ms": 3222,
+   "end_ms": 5482,
+   "text": "Это точно. А ты слышала о соседях?"
+  },
+  {
+   "speaker_id": "speaker_1",
+   "start_ms": 5785,
+   "end_ms": 6645,
+   "text": "Что случилось?"
+  },
+  {
+   "speaker_id": "speaker_2",
+   "start_ms": 6938,
+   "end_ms": 10558,
+   "text": "Они опять скандалили ночью, спать невозможно."
+  },
+  {
+   "speaker_id": "speaker_1",
+   "start_ms": 11273,
+   "end_ms": 13953,
+   "text": "Опять эти крики, надоели уже."
+  },
+  {
+   "speaker_id": "speaker_2",
+   "start_ms": 14751,
+   "end_ms": 17891,
+   "text": "Точно, полиция приезжала, но без толку."
+  },
+  {
+   "speaker_id": "speaker_1",
+   "start_ms": 18227,
+   "end_ms": 21827,
+   "text": "Да уж, а я-то думала, у нас самые шумные соседи."
+  },
+  {
+   "speaker_id": "speaker_2",
+   "start_ms": 22715,
+   "end_ms": 24655,
+   "text": "Не, наши всех переплюнут."
+  },
+  {
+   "speaker_id": "speaker_1",
+   "start_ms": 25015,
+   "end_ms": 26335,
+   "text": "Хоть переезжай из-за них."
+  },
+  {
+   "speaker_id": "speaker_2",
+   "start_ms": 26954,
+   "end_ms": 29374,
+   "text": "Да, но куда? Везде свои проблемы."
+  },
+  {
+   "speaker_id": "speaker_1",
+   "start_ms": 30198,
+   "end_ms": 32318,
+   "text": "Это точно. А у тебя как с уборкой?"
+  },
+  {
+   "speaker_id": "speaker_2",
+   "start_ms": 32584,
+   "end_ms": 34564,
+   "text": "Всё на мне, как всегда."
+  },
+  {
+   "speaker_id": "speaker_1",
+   "start_ms": 35049,
+   "end_ms": 37529,
+   "text": "Такая же история, все только мусорят."
+  },
+  {
+   "speaker_id": "speaker_2",
+   "start_ms": 37466,
+   "end_ms": 39626,
+   "text": "Иногда хочется просто всё бросить."
+  },
+  {
+   "speaker_id": "speaker_1",
+   "start_ms": 40017,
+   "end_ms": 42157,
+   "text": "Точно, а кто потом убирать будет?"
+  },
+  {
+   "speaker_id": "speaker_2",
+   "start_ms": 42834,
+   "end_ms": 44394,
+   "text": "Вот-вот. Устала уже."
+  },
+  {
+   "speaker_id": "speaker_1",
+   "start_ms": 44343,
+   "end_ms": 45823,
+   "text": "А праздники как планируешь?"
+  },
+  {
+   "speaker_id": "speaker_2",
+   "start_ms": 46085,
+   "end_ms": 47805,
+   "text": "Не знаю, настроения нет."
+  },
+  {
+   "speaker_id": "speaker_1",
+   "start_ms": 47751,
+   "end_ms": 50391,
+   "text": "У меня тоже. Всё как-то не радует."
+  },
+  {
+   "speaker_id": "speaker_2",
+   "start_ms": 51147,
+   "end_ms": 53327,
+   "text": "Да уж, может, вообще не отмечать?"
+  },
+  {
+   "speaker_id": "speaker_1",
+   "start_ms": 53228,
+   "end_ms": 55868,
+   "text": "Наверное, так и сделаю. Трат столько."
+  },
+  {
+   "speaker_id": "speaker_2",
+   "start_ms": 56020,
+   "end_ms": 57880,
+   "text": "Согласна, деньги на ветер."
+  },
+  {
+   "speaker_id": "speaker_1",
+   "start_ms": 58070,
+   "end_ms": 60150,
+   "text": "И к тому же, все подарки опять не те."
+  },
+  {
+   "speaker_id": "speaker_2",
+   "start_ms": 61005,
+   "end_ms": 64085,
+   "text": "Точно, каждый год одно и то же."
+  },
+  {
+   "speaker_id": "speaker_1",
+   "start_ms": 64878,
+   "end_ms": 67158,
+   "text": "Ну вот, настроение совсем упало."
+  },
+  {
+   "speaker_id": "speaker_2",
+   "start_ms": 67592,
+   "end_ms": 69252,
+   "text": "Да, лучше не думать об этом."
+  },
+  {
+   "speaker_id": "speaker_1",
+   "start_ms": 69953,
+   "end_ms": 72173,
+   "text": "Согласна, а то депрессия начнётся."
+  },
+  {
+   "speaker_id": "speaker_2",
+   "start_ms": 72992,
+   "end_ms": 74832,
+   "text": "Точно. А как у тебя со сном?"
+  },
+  {
+   "speaker_id": "speaker_1",
+   "start_ms": 75139,
+   "end_ms": 77179,
+   "text": "Плохо сплю, всё время ворочаюсь."
+  },
+  {
+   "speaker_id": "speaker_2",
+   "start_ms": 77955,
+   "end_ms": 80595,
+   "text": "У меня тоже бессонница. Надоело."
+  },
+  {
+   "speaker_id": "speaker_1",
+   "start_ms": 80883,
+   "end_ms": 82443,
+   "text": "Чем-то надо заняться перед сном."
+  },
+  {
+   "speaker_id": "speaker_2",
+   "start_ms": 83087,
+   "end_ms": 84147,
+   "text": "Может, книги читать?"
+  },
+  {
+   "speaker_id": "speaker_1",
+   "start_ms": 84914,
+   "end_ms": 87734,
+   "text": "Попробую, а то уже не знаю, что делать."
+  },
+  {
+   "speaker_id": "speaker_2",
+   "start_ms": 88620,
+   "end_ms": 91200,
+   "text": "Главное - не новости, а то только хуже будет."
+  },
+  {
+   "speaker_id": "speaker_1",
+   "start_ms": 91690,
+   "end_ms": 94110,
+   "text": "Точно, новости - это отдельный стресс."
+  },
+  {
+   "speaker_id": "speaker_2",
+   "start_ms": 94502,
+   "end_ms": 96342,
+   "text": "Ужас, сколько в мире плохого."
+  }
+ ]
+}

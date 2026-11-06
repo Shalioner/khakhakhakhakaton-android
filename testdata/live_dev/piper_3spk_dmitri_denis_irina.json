@@ -1,0 +1,364 @@
+{
+ "transcript": [
+  {
+   "speaker_id": "speaker_1",
+   "start_ms": 300,
+   "end_ms": 2320,
+   "text": "Я могу помурлыкать, у меня хороший голос."
+  },
+  {
+   "speaker_id": "speaker_2",
+   "start_ms": 2509,
+   "end_ms": 3389,
+   "text": "Единогласно."
+  },
+  {
+   "speaker_id": "speaker_3",
+   "start_ms": 4382,
+   "end_ms": 9002,
+   "text": "В прошлом месяце дежурства часто пропускали, особенно по выходным."
+  },
+  {
+   "speaker_id": "speaker_1",
+   "start_ms": 8940,
+   "end_ms": 9420,
+   "text": "Хорошо."
+  },
+  {
+   "speaker_id": "speaker_2",
+   "start_ms": 10217,
+   "end_ms": 12737,
+   "text": "Я могу помурлыкать, у меня хороший голос."
+  },
+  {
+   "speaker_id": "speaker_1",
+   "start_ms": 13481,
+   "end_ms": 14681,
+   "text": "Ну, это справедливо."
+  },
+  {
+   "speaker_id": "speaker_3",
+   "start_ms": 15699,
+   "end_ms": 18799,
+   "text": "Кто отвечает за закупку корма на следующий месяц?"
+  },
+  {
+   "speaker_id": "speaker_2",
+   "start_ms": 19903,
+   "end_ms": 23243,
+   "text": "Меню беру на себя: рыба, курица и немного сливок."
+  },
+  {
+   "speaker_id": "speaker_1",
+   "start_ms": 23715,
+   "end_ms": 24955,
+   "text": "Извините, продолжайте."
+  },
+  {
+   "speaker_id": "speaker_2",
+   "start_ms": 25103,
+   "end_ms": 26923,
+   "text": "Никто и не говорит, что это ты."
+  },
+  {
+   "speaker_id": "speaker_3",
+   "start_ms": 28034,
+   "end_ms": 29974,
+   "text": "Ну, это справедливо."
+  },
+  {
+   "speaker_id": "speaker_1",
+   "start_ms": 30494,
+   "end_ms": 31034,
+   "text": "Понятно."
+  },
+  {
+   "speaker_id": "speaker_2",
+   "start_ms": 32212,
+   "end_ms": 33532,
+   "text": "Сколько это будет стоить?"
+  },
+  {
+   "speaker_id": "speaker_3",
+   "start_ms": 33426,
+   "end_ms": 35746,
+   "text": "Ага, хорошая мысль."
+  },
+  {
+   "speaker_id": "speaker_1",
+   "start_ms": 35936,
+   "end_ms": 37556,
+   "text": "Дороговато, но выбора у нас нет."
+  },
+  {
+   "speaker_id": "speaker_3",
+   "start_ms": 38506,
+   "end_ms": 42486,
+   "text": "Спасибо всем за участие, заседание объявляю закрытым."
+  },
+  {
+   "speaker_id": "speaker_1",
+   "start_ms": 43075,
+   "end_ms": 45235,
+   "text": "Отличная идея, давайте так и сделаем."
+  },
+  {
+   "speaker_id": "speaker_2",
+   "start_ms": 45819,
+   "end_ms": 48179,
+   "text": "Отличная идея, давайте так и сделаем."
+  },
+  {
+   "speaker_id": "speaker_1",
+   "start_ms": 48692,
+   "end_ms": 51052,
+   "text": "Кто отвечает за закупку корма на следующий месяц?"
+  },
+  {
+   "speaker_id": "speaker_2",
+   "start_ms": 50989,
+   "end_ms": 53149,
+   "text": "Дороговато, но выбора у нас нет."
+  },
+  {
+   "speaker_id": "speaker_3",
+   "start_ms": 54316,
+   "end_ms": 57576,
+   "text": "Нужно выбрать место, меню и программу."
+  },
+  {
+   "speaker_id": "speaker_1",
+   "start_ms": 57978,
+   "end_ms": 61278,
+   "text": "В прошлом месяце дежурства часто пропускали, особенно по выходным."
+  },
+  {
+   "speaker_id": "speaker_3",
+   "start_ms": 61549,
+   "end_ms": 62929,
+   "text": "А если пойдёт дождь?"
+  },
+  {
+   "speaker_id": "speaker_1",
+   "start_ms": 62797,
+   "end_ms": 64377,
+   "text": "Никто и не говорит, что это ты."
+  },
+  {
+   "speaker_id": "speaker_3",
+   "start_ms": 64241,
+   "end_ms": 69801,
+   "text": "У меня есть замечание по бюджету: расходы на игрушки выросли почти вдвое."
+  },
+  {
+   "speaker_id": "speaker_1",
+   "start_ms": 70259,
+   "end_ms": 72899,
+   "text": "Меню беру на себя: рыба, курица и немного сливок."
+  },
+  {
+   "speaker_id": "speaker_3",
+   "start_ms": 73363,
+   "end_ms": 74583,
+   "text": "Возражения есть?"
+  },
+  {
+   "speaker_id": "speaker_1",
+   "start_ms": 75040,
+   "end_ms": 78060,
+   "text": "Спасибо всем за участие, заседание объявляю закрытым."
+  },
+  {
+   "speaker_id": "speaker_3",
+   "start_ms": 78090,
+   "end_ms": 78570,
+   "text": "Угу."
+  },
+  {
+   "speaker_id": "speaker_1",
+   "start_ms": 79139,
+   "end_ms": 80219,
+   "text": "Сколько это будет стоить?"
+  },
+  {
+   "speaker_id": "speaker_3",
+   "start_ms": 81296,
+   "end_ms": 86576,
+   "text": "Соседи с пятого этажа жалуются, что кто-то бегает по лестнице после полуночи."
+  },
+  {
+   "speaker_id": "speaker_1",
+   "start_ms": 86161,
+   "end_ms": 89961,
+   "text": "Соседи с пятого этажа жалуются, что кто-то бегает по лестнице после полуночи."
+  },
+  {
+   "speaker_id": "speaker_2",
+   "start_ms": 90368,
+   "end_ms": 90808,
+   "text": "Угу."
+  },
+  {
+   "speaker_id": "speaker_1",
+   "start_ms": 91560,
+   "end_ms": 93360,
+   "text": "Тогда записываем решение в протокол."
+  },
+  {
+   "speaker_id": "speaker_2",
+   "start_ms": 93948,
+   "end_ms": 94308,
+   "text": "Да."
+  },
+  {
+   "speaker_id": "speaker_3",
+   "start_ms": 94256,
+   "end_ms": 98516,
+   "text": "Меню беру на себя: рыба, курица и немного сливок."
+  },
+  {
+   "speaker_id": "speaker_1",
+   "start_ms": 99397,
+   "end_ms": 100517,
+   "text": "А если пойдёт дождь?"
+  },
+  {
+   "speaker_id": "speaker_2",
+   "start_ms": 100903,
+   "end_ms": 104863,
+   "text": "В прошлом месяце дежурства часто пропускали, особенно по выходным."
+  },
+  {
+   "speaker_id": "speaker_1",
+   "start_ms": 104735,
+   "end_ms": 108915,
+   "text": "У меня есть замечание по бюджету: расходы на игрушки выросли почти вдвое."
+  },
+  {
+   "speaker_id": "speaker_2",
+   "start_ms": 109260,
+   "end_ms": 110720,
+   "text": "Извините, продолжайте."
+  },
+  {
+   "speaker_id": "speaker_3",
+   "start_ms": 110654,
+   "end_ms": 111994,
+   "text": "Сколько это будет стоить?"
+  },
+  {
+   "speaker_id": "speaker_2",
+   "start_ms": 113119,
+   "end_ms": 113699,
+   "text": "Хорошо."
+  },
+  {
+   "speaker_id": "speaker_1",
+   "start_ms": 114182,
+   "end_ms": 115142,
+   "text": "Возражения есть?"
+  },
+  {
+   "speaker_id": "speaker_3",
+   "start_ms": 115842,
+   "end_ms": 116362,
+   "text": "Да."
+  },
+  {
+   "speaker_id": "speaker_1",
+   "start_ms": 116690,
+   "end_ms": 117630,
+   "text": "Ага, хорошая мысль."
+  },
+  {
+   "speaker_id": "speaker_2",
+   "start_ms": 117491,
+   "end_ms": 118811,
+   "text": "Ага, хорошая мысль."
+  },
+  {
+   "speaker_id": "speaker_3",
+   "start_ms": 119335,
+   "end_ms": 121095,
+   "text": "А гости тоже получают корм?"
+  },
+  {
+   "speaker_id": "speaker_1",
+   "start_ms": 120991,
+   "end_ms": 122871,
+   "text": "Сколько котов сейчас живёт в нашем доме?"
+  },
+  {
+   "speaker_id": "speaker_2",
+   "start_ms": 122601,
+   "end_ms": 125001,
+   "text": "Нужно выбрать место, меню и программу."
+  },
+  {
+   "speaker_id": "speaker_3",
+   "start_ms": 125597,
+   "end_ms": 126237,
+   "text": "Хорошо."
+  },
+  {
+   "speaker_id": "speaker_2",
+   "start_ms": 126610,
+   "end_ms": 131330,
+   "text": "У меня есть замечание по бюджету: расходы на игрушки выросли почти вдвое."
+  },
+  {
+   "speaker_id": "speaker_1",
+   "start_ms": 132161,
+   "end_ms": 132941,
+   "text": "Единогласно."
+  },
+  {
+   "speaker_id": "speaker_3",
+   "start_ms": 132835,
+   "end_ms": 135275,
+   "text": "Дороговато, но выбора у нас нет."
+  },
+  {
+   "speaker_id": "speaker_1",
+   "start_ms": 135841,
+   "end_ms": 137381,
+   "text": "А гости тоже получают корм?"
+  },
+  {
+   "speaker_id": "speaker_2",
+   "start_ms": 137473,
+   "end_ms": 138733,
+   "text": "А если пойдёт дождь?"
+  },
+  {
+   "speaker_id": "speaker_3",
+   "start_ms": 139214,
+   "end_ms": 141594,
+   "text": "Тогда записываем решение в протокол."
+  },
+  {
+   "speaker_id": "speaker_1",
+   "start_ms": 142002,
+   "end_ms": 143722,
+   "text": "Нужно выбрать место, меню и программу."
+  },
+  {
+   "speaker_id": "speaker_3",
+   "start_ms": 143718,
+   "end_ms": 146798,
+   "text": "Отличная идея, давайте так и сделаем."
+  },
+  {
+   "speaker_id": "speaker_2",
+   "start_ms": 147553,
+   "end_ms": 149673,
+   "text": "Сколько котов сейчас живёт в нашем доме?"
+  },
+  {
+   "speaker_id": "speaker_3",
+   "start_ms": 149809,
+   "end_ms": 150849,
+   "text": "Единогласно."
+  }
+ ]
+}

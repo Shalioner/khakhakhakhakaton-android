@@ -9,6 +9,9 @@
 <name>.{wav,flac,mp3,ogg,opus,m4a} рядом с эталоном.
 Ячейки матрицы: <name>.meta.json:"conditions" {ось: значение} — по каждой паре
 ось=значение печатается среднее (см. testdata/README.md).
+Эталоны без текста (<name>.meta.json: "has_text": false, верхний уровень или conditions) —
+например, DataHive с эталоном по речевой активности каналов: WER/cpWER не считаются ("—" и не входят
+в среднее), DER/границы/число спикеров — как обычно. Без поля has_text эталон считается текстовым.
 timings.json: {"<name>": {"proc_ms": 1234, "audio_ms": 60000}} или {"<name>": 0.12} (готовый RTF).
 Отсутствующая/битая гипотеза = худший случай (WER=DER=100%), контракт = FAIL.
 Код выхода 1, если хоть одна гипотеза отсутствует или нарушает контракт.
@@ -63,11 +66,19 @@ def _duration(ref, meta):
     return None
 
 
+def has_text(meta):
+    """False, если эталон без текста (meta "has_text": false на верхнем уровне или в conditions)."""
+    v = meta.get("has_text", meta.get("conditions", {}).get("has_text", True))
+    return v not in (False, "false", "False", 0)
+
+
 def _rtf(t, dur):
     if t is None:
         return None
     if isinstance(t, (int, float)):
         return float(t)
+    if "proc_ms" not in t:  # {"error": ...} от bench
+        return None
     audio = t.get("audio_ms", dur)
     return t["proc_ms"] / audio if audio else None
 
@@ -80,8 +91,9 @@ def evaluate(ref_dir, hyp_dir, timings=None, collar_ms=250):
         meta = _meta(ref)
         dur = _duration(ref, meta)
         r = load_segments(ref)
+        text = has_text(meta)
         row = {"file": str(rel.with_suffix("")).replace("\\", "/"),
-               "spk_ref": len({s[0] for s in r}), "conditions": meta.get("conditions", {})}
+               "spk_ref": len({s[0] for s in r}), "conditions": meta.get("conditions", {}), "has_text": text}
         hp = next((p for p in (Path(hyp_dir) / rel, Path(hyp_dir) / f"{name}.json") if p.exists()), None)
         obj = None
         if hp is not None:
@@ -91,8 +103,8 @@ def evaluate(ref_dir, hyp_dir, timings=None, collar_ms=250):
             except ValueError:
                 obj = None
         if obj is None:
-            row.update(wer=1.0, cpwer=1.0, der=1.0, miss=1.0, fa=0.0, conf=0.0, bnd_mean_ms=None,
-                       bnd_median_ms=None, rtf=None, spk_hyp=0,
+            row.update(wer=1.0 if text else None, cpwer=1.0 if text else None, der=1.0, miss=1.0, fa=0.0,
+                       conf=0.0, bnd_mean_ms=None, bnd_median_ms=None, rtf=None, spk_hyp=0,
                        contract="MISSING" if hp is None else "BAD_JSON")
             rows.append(row)
             continue
@@ -100,8 +112,8 @@ def evaluate(ref_dir, hyp_dir, timings=None, collar_ms=250):
         h = load_segments(hp)
         d = der(r, h, collar_ms)
         b = boundary_err(r, h)
-        row.update(wer=wer(r, h)[0], cpwer=cpwer(r, h)[0], der=d["der"], miss=d["miss"], fa=d["fa"],
-                   conf=d["conf"], bnd_mean_ms=b["mean"], bnd_median_ms=b["median"],
+        row.update(wer=wer(r, h)[0] if text else None, cpwer=cpwer(r, h)[0] if text else None,
+                   der=d["der"], miss=d["miss"], fa=d["fa"], conf=d["conf"], bnd_mean_ms=b["mean"], bnd_median_ms=b["median"],
                    rtf=_rtf(timings.get(name), dur), spk_hyp=len({s[0] for s in h}),
                    contract="OK" if not errs else f"FAIL({len(errs)}): {errs[0]}")
         rows.append(row)

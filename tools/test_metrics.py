@@ -169,3 +169,35 @@ def test_synthetic_and_report(tmp_path):
     assert "**mean**" in md and "**worst**" in md and "По ячейкам" in md
     assert report.main([str(ref_dir), str(hyp_dir)]) == 1  # из-за MISSING
     assert (hyp_dir / "report.csv").exists()
+
+
+# ---------- эталон без текста (has_text=false) ----------
+def test_report_has_text_false(tmp_path):
+    ref_dir, hyp_dir = tmp_path / "ref", tmp_path / "hyp"
+    ref_dir.mkdir()
+    hyp_dir.mkdir()
+    ref = T(("speaker_1", 0, 4000, "[речь]"), ("speaker_2", 4000, 8000, "[речь]"))
+    hyp = T(("speaker_1", 0, 4000, "привет как дела"), ("speaker_2", 4000, 8000, "нормально"))
+    for name, meta in (("notext", {"duration_ms": 9000, "has_text": False,
+                                   "conditions": {"origin": "live", "has_text": False}}),
+                       ("notext_cond", {"duration_ms": 9000, "conditions": {"has_text": False}}),
+                       ("legacy", {"duration_ms": 9000}),  # без поля -> текстовый (обратная совместимость)
+                       ("notext_missing", {"duration_ms": 9000, "has_text": False})):
+        (ref_dir / f"{name}.json").write_text(json.dumps(ref, ensure_ascii=False), encoding="utf-8")
+        (ref_dir / f"{name}.meta.json").write_text(json.dumps(meta), encoding="utf-8")
+        if name != "notext_missing":
+            (hyp_dir / f"{name}.json").write_text(json.dumps(hyp, ensure_ascii=False), encoding="utf-8")
+    rows = {r["file"]: r for r in report.evaluate(str(ref_dir), str(hyp_dir))}
+    for n in ("notext", "notext_cond"):
+        r = rows[n]
+        assert r["wer"] is None and r["cpwer"] is None and r["has_text"] is False
+        assert r["der"] == 0.0 and r["bnd_mean_ms"] == 0.0 and r["contract"] == "OK"
+    assert rows["legacy"]["wer"] > 0 and rows["legacy"]["has_text"] is True
+    m = rows["notext_missing"]
+    assert m["wer"] is None and m["der"] == 1.0 and m["contract"] == "MISSING"
+    mean, worst = report._agg(list(rows.values()))
+    assert mean["wer"] == rows["legacy"]["wer"] and worst["wer"][1] == "legacy"  # только текстовые
+    md = report.to_markdown(list(rows.values()))
+    line = next(s for s in md.splitlines() if s.startswith("| notext |"))
+    assert line.split("|")[2].strip() == "—" and line.split("|")[3].strip() == "—"
+    assert report._rtf({"error": "boom"}, 1000) is None

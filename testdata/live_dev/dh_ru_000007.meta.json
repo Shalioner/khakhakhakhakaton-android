@@ -1,0 +1,46 @@
+{
+ "duration_ms": 238081,
+ "source": "datahive",
+ "source_id": "datahiveai/russian-conversations-sample/preview/ru_000007.mp3",
+ "license": "CC BY 4.0 (DataHive — Russian Conversations, attribution required)",
+ "has_text": false,
+ "conditions": {
+  "speakers": 2,
+  "quality": "voip_opus",
+  "voices": "live",
+  "dynamics": "overlap",
+  "format": "mp3_48k_stereo_to_wav16k_mono",
+  "origin": "live",
+  "has_text": false,
+  "duration": "5m"
+ },
+ "ref_method": "energy VAD per channel (100-1000 Hz, L95-30 dB on / -36 dB off, voicing gate >=15% periodic frames, pad 50 ms, merge gaps < 1000 ms, drop < 250 ms); speaker = channel; no transcript",
+ "ref_check": {
+  "method": "energy_vs_silero",
+  "frame_iou": 0.772,
+  "energy_only_share": 0.082,
+  "silero_only_share": 0.146,
+  "der_per_channel_collar250": [
+   0.221,
+   0.032
+  ],
+  "boundary_median_ms_per_channel": [
+   35.0,
+   22.0
+  ]
+ },
+ "speech_share_by_channel": [
+  0.356,
+  0.429
+ ],
+ "source_meta": {
+  "country_from": "KZ",
+  "country_to": "KZ",
+  "topic": "everyday_life",
+  "duration_seconds": 238.128,
+  "overlap_percent": 13.9,
+  "speech_balance_percent": 39.9,
+  "turn_taking_gap_ms": 498
+ },
+ "cut_ms": 238081
+}

@@ -1,0 +1,62 @@
+{
+ "duration_ms": 108802,
+ "source": "testdata/dev + ESC-50",
+ "source_id": "testdata/dev/clean_2spk_001",
+ "license": "base: as testdata/dev; ESC-50 clips CC BY-NC 3.0 (K. Piczak) — internal tests only",
+ "has_text": true,
+ "conditions": {
+  "speakers": 2,
+  "duration": "5m",
+  "quality": "clean",
+  "dynamics": "overlap",
+  "origin": "synthetic_esc50",
+  "voices": "same_base",
+  "nonspeech": "cat+dog+laughing",
+  "has_text": true
+ },
+ "inserted": [
+  {
+   "at_ms": 12172,
+   "len_ms": 3000,
+   "category": "cat",
+   "clip": "ESC-50/audio/3-95695-A-5.wav",
+   "gain_db_vs_speech": -5.5
+  },
+  {
+   "at_ms": 29643,
+   "len_ms": 720,
+   "category": "dog",
+   "clip": "ESC-50/audio/3-163459-A-0.wav",
+   "gain_db_vs_speech": -3.6
+  },
+  {
+   "at_ms": 39154,
+   "len_ms": 220,
+   "category": "dog",
+   "clip": "ESC-50/audio/1-100032-A-0.wav",
+   "gain_db_vs_speech": -6.0
+  },
+  {
+   "at_ms": 49446,
+   "len_ms": 1900,
+   "category": "laughing",
+   "clip": "ESC-50/audio/2-79775-A-26.wav",
+   "gain_db_vs_speech": -3.2
+  },
+  {
+   "at_ms": 63468,
+   "len_ms": 3000,
+   "category": "laughing",
+   "clip": "ESC-50/audio/2-60791-A-26.wav",
+   "gain_db_vs_speech": -5.5
+  },
+  {
+   "at_ms": 83216,
+   "len_ms": 3000,
+   "category": "dog",
+   "clip": "ESC-50/audio/2-122104-B-0.wav",
+   "gain_db_vs_speech": -5.8
+  }
+ ],
+ "note": "inserted non-speech must not produce replicas or new speakers (AGENTS.md 2.8)"
+}

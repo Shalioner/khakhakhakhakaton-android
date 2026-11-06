@@ -1,0 +1,62 @@
+{
+ "duration_ms": 205217,
+ "source": "testdata/dev + ESC-50",
+ "source_id": "testdata/dev/clean_3spk_000",
+ "license": "base: as testdata/dev; ESC-50 clips CC BY-NC 3.0 (K. Piczak) — internal tests only",
+ "has_text": true,
+ "conditions": {
+  "speakers": 3,
+  "duration": "5m",
+  "quality": "clean",
+  "dynamics": "overlap",
+  "origin": "synthetic_esc50",
+  "voices": "mixed",
+  "nonspeech": "cat+laughing",
+  "has_text": true
+ },
+ "inserted": [
+  {
+   "at_ms": 27453,
+   "len_ms": 3000,
+   "category": "cat",
+   "clip": "ESC-50/audio/1-34094-A-5.wav",
+   "gain_db_vs_speech": -4.0
+  },
+  {
+   "at_ms": 54151,
+   "len_ms": 3000,
+   "category": "cat",
+   "clip": "ESC-50/audio/1-56380-A-5.wav",
+   "gain_db_vs_speech": -3.9
+  },
+  {
+   "at_ms": 82617,
+   "len_ms": 3000,
+   "category": "laughing",
+   "clip": "ESC-50/audio/1-36164-B-26.wav",
+   "gain_db_vs_speech": -3.7
+  },
+  {
+   "at_ms": 119624,
+   "len_ms": 3000,
+   "category": "cat",
+   "clip": "ESC-50/audio/2-83934-B-5.wav",
+   "gain_db_vs_speech": -5.3
+  },
+  {
+   "at_ms": 142116,
+   "len_ms": 3000,
+   "category": "cat",
+   "clip": "ESC-50/audio/4-161303-A-5.wav",
+   "gain_db_vs_speech": -4.9
+  },
+  {
+   "at_ms": 175683,
+   "len_ms": 3000,
+   "category": "cat",
+   "clip": "ESC-50/audio/4-133047-A-5.wav",
+   "gain_db_vs_speech": -1.5
+  }
+ ],
+ "note": "inserted non-speech must not produce replicas or new speakers (AGENTS.md 2.8)"
+}

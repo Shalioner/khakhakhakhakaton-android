@@ -1,0 +1,184 @@
+{
+ "transcript": [
+  {
+   "speaker_id": "speaker_1",
+   "start_ms": 300,
+   "end_ms": 2420,
+   "text": "Дороговато, но выбора у нас нет."
+  },
+  {
+   "speaker_id": "speaker_2",
+   "start_ms": 3012,
+   "end_ms": 5592,
+   "text": "Сколько котов сейчас живёт в нашем доме?"
+  },
+  {
+   "speaker_id": "speaker_1",
+   "start_ms": 5766,
+   "end_ms": 6966,
+   "text": "А если пойдёт дождь?"
+  },
+  {
+   "speaker_id": "speaker_2",
+   "start_ms": 6901,
+   "end_ms": 7481,
+   "text": "Хорошо."
+  },
+  {
+   "speaker_id": "speaker_1",
+   "start_ms": 8842,
+   "end_ms": 11822,
+   "text": "Кто отвечает за закупку корма на следующий месяц?"
+  },
+  {
+   "speaker_id": "speaker_2",
+   "start_ms": 15522,
+   "end_ms": 17402,
+   "text": "Извините, продолжайте."
+  },
+  {
+   "speaker_id": "speaker_1",
+   "start_ms": 18427,
+   "end_ms": 22027,
+   "text": "Спасибо всем за участие, заседание объявляю закрытым."
+  },
+  {
+   "speaker_id": "speaker_2",
+   "start_ms": 22724,
+   "end_ms": 27984,
+   "text": "Соседи с пятого этажа жалуются, что кто-то бегает по лестнице после полуночи."
+  },
+  {
+   "speaker_id": "speaker_1",
+   "start_ms": 27840,
+   "end_ms": 28740,
+   "text": "Единогласно."
+  },
+  {
+   "speaker_id": "speaker_2",
+   "start_ms": 31267,
+   "end_ms": 31587,
+   "text": "Угу."
+  },
+  {
+   "speaker_id": "speaker_1",
+   "start_ms": 31988,
+   "end_ms": 34508,
+   "text": "Отличная идея, давайте так и сделаем."
+  },
+  {
+   "speaker_id": "speaker_2",
+   "start_ms": 34881,
+   "end_ms": 38561,
+   "text": "Меню беру на себя: рыба, курица и немного сливок."
+  },
+  {
+   "speaker_id": "speaker_1",
+   "start_ms": 39967,
+   "end_ms": 41667,
+   "text": "Извините, продолжайте."
+  },
+  {
+   "speaker_id": "speaker_2",
+   "start_ms": 42096,
+   "end_ms": 43276,
+   "text": "Возражения есть?"
+  },
+  {
+   "speaker_id": "speaker_1",
+   "start_ms": 44179,
+   "end_ms": 48679,
+   "text": "У меня есть замечание по бюджету: расходы на игрушки выросли почти вдвое."
+  },
+  {
+   "speaker_id": "speaker_2",
+   "start_ms": 52113,
+   "end_ms": 53633,
+   "text": "Сколько это будет стоить?"
+  },
+  {
+   "speaker_id": "speaker_1",
+   "start_ms": 54735,
+   "end_ms": 59455,
+   "text": "Соседи с пятого этажа жалуются, что кто-то бегает по лестнице после полуночи."
+  },
+  {
+   "speaker_id": "speaker_2",
+   "start_ms": 60653,
+   "end_ms": 62753,
+   "text": "Никто и не говорит, что это ты."
+  },
+  {
+   "speaker_id": "speaker_1",
+   "start_ms": 67183,
+   "end_ms": 70483,
+   "text": "Меню беру на себя: рыба, курица и немного сливок."
+  },
+  {
+   "speaker_id": "speaker_2",
+   "start_ms": 71261,
+   "end_ms": 74061,
+   "text": "Отличная идея, давайте так и сделаем."
+  },
+  {
+   "speaker_id": "speaker_1",
+   "start_ms": 75530,
+   "end_ms": 77010,
+   "text": "Ага, хорошая мысль."
+  },
+  {
+   "speaker_id": "speaker_2",
+   "start_ms": 76914,
+   "end_ms": 80894,
+   "text": "Спасибо всем за участие, заседание объявляю закрытым."
+  },
+  {
+   "speaker_id": "speaker_1",
+   "start_ms": 80937,
+   "end_ms": 82317,
+   "text": "Сколько это будет стоить?"
+  },
+  {
+   "speaker_id": "speaker_2",
+   "start_ms": 87116,
+   "end_ms": 92136,
+   "text": "У меня есть замечание по бюджету: расходы на игрушки выросли почти вдвое."
+  },
+  {
+   "speaker_id": "speaker_1",
+   "start_ms": 93091,
+   "end_ms": 93631,
+   "text": "Хорошо."
+  },
+  {
+   "speaker_id": "speaker_2",
+   "start_ms": 94764,
+   "end_ms": 97204,
+   "text": "Тогда записываем решение в протокол."
+  },
+  {
+   "speaker_id": "speaker_1",
+   "start_ms": 98171,
+   "end_ms": 100071,
+   "text": "Никто и не говорит, что это ты."
+  },
+  {
+   "speaker_id": "speaker_2",
+   "start_ms": 101196,
+   "end_ms": 103536,
+   "text": "Дороговато, но выбора у нас нет."
+  },
+  {
+   "speaker_id": "speaker_1",
+   "start_ms": 103766,
+   "end_ms": 104826,
+   "text": "Возражения есть?"
+  },
+  {
+   "speaker_id": "speaker_2",
+   "start_ms": 105862,
+   "end_ms": 108502,
+   "text": "Нужно выбрать место, меню и программу."
+  }
+ ]
+}

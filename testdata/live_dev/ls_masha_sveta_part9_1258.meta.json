@@ -1,0 +1,84 @@
+{
+ "duration_ms": 96642,
+ "source": "langswap_dialogs",
+ "source_id": "langswap/dialogs-ru-emotional-conversations masha_sveta_part9 #1258..1293",
+ "license": "OpenRAIL (Langswap Dialogs, LICENSE.md: use restrictions flow down; cite arXiv:2607.14310)",
+ "has_text": true,
+ "conditions": {
+  "speakers": 2,
+  "quality": "studio",
+  "voices": "ff_stylized",
+  "dynamics": "turns_overlap",
+  "format": "wav44k_to_wav16k_mono",
+  "origin": "studio_actors",
+  "has_text": true,
+  "duration": "5m"
+ },
+ "speakers_src": [
+  "Masha",
+  "Sveta"
+ ],
+ "styles": {
+  "angry": 4,
+  "neutral": 10,
+  "sad": 9,
+  "whisper": 3,
+  "arrogance": 2,
+  "laughing": 3,
+  "disgust": 1,
+  "surprise": 1,
+  "happy": 2,
+  "fear": 1
+ },
+ "params": {
+  "pause_s": [
+   0.15,
+   0.9
+  ],
+  "same_spk_pause_s": [
+   0.2,
+   0.6
+  ],
+  "overlap_prob": 0.15,
+  "max_overlap": 0.1,
+  "merge_same_speaker_gap_ms": 1000
+ },
+ "utterances_src": [
+  "wavs/masha_sveta_part9_1258.wav",
+  "wavs/masha_sveta_part9_1259.wav",
+  "wavs/masha_sveta_part9_1260.wav",
+  "wavs/masha_sveta_part9_1261.wav",
+  "wavs/masha_sveta_part9_1262.wav",
+  "wavs/masha_sveta_part9_1263.wav",
+  "wavs/masha_sveta_part9_1264.wav",
+  "wavs/masha_sveta_part9_1265.wav",
+  "wavs/masha_sveta_part9_1266.wav",
+  "wavs/masha_sveta_part9_1267.wav",
+  "wavs/masha_sveta_part9_1268.wav",
+  "wavs/masha_sveta_part9_1269.wav",
+  "wavs/masha_sveta_part9_1270.wav",
+  "wavs/masha_sveta_part9_1271.wav",
+  "wavs/masha_sveta_part9_1272.wav",
+  "wavs/masha_sveta_part9_1273.wav",
+  "wavs/masha_sveta_part9_1274.wav",
+  "wavs/masha_sveta_part9_1275.wav",
+  "wavs/masha_sveta_part9_1276.wav",
+  "wavs/masha_sveta_part9_1277.wav",
+  "wavs/masha_sveta_part9_1278.wav",
+  "wavs/masha_sveta_part9_1279.wav",
+  "wavs/masha_sveta_part9_1280.wav",
+  "wavs/masha_sveta_part9_1281.wav",
+  "wavs/masha_sveta_part9_1282.wav",
+  "wavs/masha_sveta_part9_1283.wav",
+  "wavs/masha_sveta_part9_1284.wav",
+  "wavs/masha_sveta_part9_1285.wav",
+  "wavs/masha_sveta_part9_1286.wav",
+  "wavs/masha_sveta_part9_1287.wav",
+  "wavs/masha_sveta_part9_1288.wav",
+  "wavs/masha_sveta_part9_1289.wav",
+  "wavs/masha_sveta_part9_1290.wav",
+  "wavs/masha_sveta_part9_1291.wav",
+  "wavs/masha_sveta_part9_1292.wav",
+  "wavs/masha_sveta_part9_1293.wav"
+ ]
+}

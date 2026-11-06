@@ -51,3 +51,6 @@ src/android/libs/
 testdata/smoke/*.wav
 testdata/dev/*.wav
 testdata/test/*.wav
+# live-наборы (regenerate: tools/build_live_sets.sh; лицензии источников — testdata/README.md)
+testdata/live_dev/*.wav
+testdata/live_test/*.wav

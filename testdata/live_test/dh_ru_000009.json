@@ -1,0 +1,694 @@
+{
+ "transcript": [
+  {
+   "speaker_id": "speaker_1",
+   "start_ms": 1540,
+   "end_ms": 1950,
+   "text": "[речь]"
+  },
+  {
+   "speaker_id": "speaker_1",
+   "start_ms": 8800,
+   "end_ms": 9210,
+   "text": "[речь]"
+  },
+  {
+   "speaker_id": "speaker_1",
+   "start_ms": 19320,
+   "end_ms": 21150,
+   "text": "[речь]"
+  },
+  {
+   "speaker_id": "speaker_2",
+   "start_ms": 20620,
+   "end_ms": 22330,
+   "text": "[речь]"
+  },
+  {
+   "speaker_id": "speaker_2",
+   "start_ms": 23650,
+   "end_ms": 25670,
+   "text": "[речь]"
+  },
+  {
+   "speaker_id": "speaker_1",
+   "start_ms": 23770,
+   "end_ms": 25660,
+   "text": "[речь]"
+  },
+  {
+   "speaker_id": "speaker_1",
+   "start_ms": 27850,
+   "end_ms": 28360,
+   "text": "[речь]"
+  },
+  {
+   "speaker_id": "speaker_2",
+   "start_ms": 27860,
+   "end_ms": 31750,
+   "text": "[речь]"
+  },
+  {
+   "speaker_id": "speaker_1",
+   "start_ms": 30840,
+   "end_ms": 42060,
+   "text": "[речь]"
+  },
+  {
+   "speaker_id": "speaker_2",
+   "start_ms": 40540,
+   "end_ms": 40900,
+   "text": "[речь]"
+  },
+  {
+   "speaker_id": "speaker_2",
+   "start_ms": 44070,
+   "end_ms": 48740,
+   "text": "[речь]"
+  },
+  {
+   "speaker_id": "speaker_1",
+   "start_ms": 44290,
+   "end_ms": 45290,
+   "text": "[речь]"
+  },
+  {
+   "speaker_id": "speaker_1",
+   "start_ms": 47710,
+   "end_ms": 50410,
+   "text": "[речь]"
+  },
+  {
+   "speaker_id": "speaker_2",
+   "start_ms": 49760,
+   "end_ms": 50160,
+   "text": "[речь]"
+  },
+  {
+   "speaker_id": "speaker_2",
+   "start_ms": 51270,
+   "end_ms": 61930,
+   "text": "[речь]"
+  },
+  {
+   "speaker_id": "speaker_1",
+   "start_ms": 61480,
+   "end_ms": 69500,
+   "text": "[речь]"
+  },
+  {
+   "speaker_id": "speaker_2",
+   "start_ms": 70350,
+   "end_ms": 71360,
+   "text": "[речь]"
+  },
+  {
+   "speaker_id": "speaker_1",
+   "start_ms": 71790,
+   "end_ms": 76720,
+   "text": "[речь]"
+  },
+  {
+   "speaker_id": "speaker_2",
+   "start_ms": 74150,
+   "end_ms": 74710,
+   "text": "[речь]"
+  },
+  {
+   "speaker_id": "speaker_2",
+   "start_ms": 78240,
+   "end_ms": 91270,
+   "text": "[речь]"
+  },
+  {
+   "speaker_id": "speaker_1",
+   "start_ms": 88090,
+   "end_ms": 88600,
+   "text": "[речь]"
+  },
+  {
+   "speaker_id": "speaker_2",
+   "start_ms": 92350,
+   "end_ms": 100830,
+   "text": "[речь]"
+  },
+  {
+   "speaker_id": "speaker_1",
+   "start_ms": 92540,
+   "end_ms": 92990,
+   "text": "[речь]"
+  },
+  {
+   "speaker_id": "speaker_1",
+   "start_ms": 102380,
+   "end_ms": 104580,
+   "text": "[речь]"
+  },
+  {
+   "speaker_id": "speaker_2",
+   "start_ms": 106960,
+   "end_ms": 116840,
+   "text": "[речь]"
+  },
+  {
+   "speaker_id": "speaker_1",
+   "start_ms": 106970,
+   "end_ms": 107740,
+   "text": "[речь]"
+  },
+  {
+   "speaker_id": "speaker_1",
+   "start_ms": 116800,
+   "end_ms": 117260,
+   "text": "[речь]"
+  },
+  {
+   "speaker_id": "speaker_1",
+   "start_ms": 118450,
+   "end_ms": 118830,
+   "text": "[речь]"
+  },
+  {
+   "speaker_id": "speaker_2",
+   "start_ms": 118730,
+   "end_ms": 127830,
+   "text": "[речь]"
+  },
+  {
+   "speaker_id": "speaker_1",
+   "start_ms": 130140,
+   "end_ms": 137440,
+   "text": "[речь]"
+  },
+  {
+   "speaker_id": "speaker_2",
+   "start_ms": 130190,
+   "end_ms": 130470,
+   "text": "[речь]"
+  },
+  {
+   "speaker_id": "speaker_2",
+   "start_ms": 137360,
+   "end_ms": 138530,
+   "text": "[речь]"
+  },
+  {
+   "speaker_id": "speaker_1",
+   "start_ms": 141910,
+   "end_ms": 142680,
+   "text": "[речь]"
+  },
+  {
+   "speaker_id": "speaker_1",
+   "start_ms": 146560,
+   "end_ms": 149140,
+   "text": "[речь]"
+  },
+  {
+   "speaker_id": "speaker_2",
+   "start_ms": 150380,
+   "end_ms": 153640,
+   "text": "[речь]"
+  },
+  {
+   "speaker_id": "speaker_2",
+   "start_ms": 154780,
+   "end_ms": 155360,
+   "text": "[речь]"
+  },
+  {
+   "speaker_id": "speaker_2",
+   "start_ms": 156450,
+   "end_ms": 156810,
+   "text": "[речь]"
+  },
+  {
+   "speaker_id": "speaker_1",
+   "start_ms": 157870,
+   "end_ms": 159770,
+   "text": "[речь]"
+  },
+  {
+   "speaker_id": "speaker_2",
+   "start_ms": 158100,
+   "end_ms": 158670,
+   "text": "[речь]"
+  },
+  {
+   "speaker_id": "speaker_2",
+   "start_ms": 161810,
+   "end_ms": 165260,
+   "text": "[речь]"
+  },
+  {
+   "speaker_id": "speaker_2",
+   "start_ms": 166600,
+   "end_ms": 168270,
+   "text": "[речь]"
+  },
+  {
+   "speaker_id": "speaker_1",
+   "start_ms": 168050,
+   "end_ms": 178380,
+   "text": "[речь]"
+  },
+  {
+   "speaker_id": "speaker_1",
+   "start_ms": 179490,
+   "end_ms": 179880,
+   "text": "[речь]"
+  },
+  {
+   "speaker_id": "speaker_2",
+   "start_ms": 180880,
+   "end_ms": 181310,
+   "text": "[речь]"
+  },
+  {
+   "speaker_id": "speaker_1",
+   "start_ms": 181480,
+   "end_ms": 183810,
+   "text": "[речь]"
+  },
+  {
+   "speaker_id": "speaker_2",
+   "start_ms": 185690,
+   "end_ms": 189750,
+   "text": "[речь]"
+  },
+  {
+   "speaker_id": "speaker_1",
+   "start_ms": 190240,
+   "end_ms": 196010,
+   "text": "[речь]"
+  },
+  {
+   "speaker_id": "speaker_2",
+   "start_ms": 190860,
+   "end_ms": 191640,
+   "text": "[речь]"
+  },
+  {
+   "speaker_id": "speaker_1",
+   "start_ms": 197940,
+   "end_ms": 208490,
+   "text": "[речь]"
+  },
+  {
+   "speaker_id": "speaker_2",
+   "start_ms": 198500,
+   "end_ms": 198780,
+   "text": "[речь]"
+  },
+  {
+   "speaker_id": "speaker_2",
+   "start_ms": 202410,
+   "end_ms": 202820,
+   "text": "[речь]"
+  },
+  {
+   "speaker_id": "speaker_2",
+   "start_ms": 210000,
+   "end_ms": 211410,
+   "text": "[речь]"
+  },
+  {
+   "speaker_id": "speaker_1",
+   "start_ms": 211980,
+   "end_ms": 214340,
+   "text": "[речь]"
+  },
+  {
+   "speaker_id": "speaker_2",
+   "start_ms": 216460,
+   "end_ms": 216860,
+   "text": "[речь]"
+  },
+  {
+   "speaker_id": "speaker_1",
+   "start_ms": 216980,
+   "end_ms": 223010,
+   "text": "[речь]"
+  },
+  {
+   "speaker_id": "speaker_1",
+   "start_ms": 224460,
+   "end_ms": 227480,
+   "text": "[речь]"
+  },
+  {
+   "speaker_id": "speaker_2",
+   "start_ms": 228360,
+   "end_ms": 228790,
+   "text": "[речь]"
+  },
+  {
+   "speaker_id": "speaker_1",
+   "start_ms": 229430,
+   "end_ms": 230100,
+   "text": "[речь]"
+  },
+  {
+   "speaker_id": "speaker_2",
+   "start_ms": 234040,
+   "end_ms": 236130,
+   "text": "[речь]"
+  },
+  {
+   "speaker_id": "speaker_2",
+   "start_ms": 237300,
+   "end_ms": 240130,
+   "text": "[речь]"
+  },
+  {
+   "speaker_id": "speaker_1",
+   "start_ms": 241890,
+   "end_ms": 244310,
+   "text": "[речь]"
+  },
+  {
+   "speaker_id": "speaker_2",
+   "start_ms": 242400,
+   "end_ms": 242820,
+   "text": "[речь]"
+  },
+  {
+   "speaker_id": "speaker_1",
+   "start_ms": 245580,
+   "end_ms": 245910,
+   "text": "[речь]"
+  },
+  {
+   "speaker_id": "speaker_2",
+   "start_ms": 247820,
+   "end_ms": 248410,
+   "text": "[речь]"
+  },
+  {
+   "speaker_id": "speaker_1",
+   "start_ms": 249740,
+   "end_ms": 255650,
+   "text": "[речь]"
+  },
+  {
+   "speaker_id": "speaker_1",
+   "start_ms": 256770,
+   "end_ms": 262480,
+   "text": "[речь]"
+  },
+  {
+   "speaker_id": "speaker_2",
+   "start_ms": 257370,
+   "end_ms": 257780,
+   "text": "[речь]"
+  },
+  {
+   "speaker_id": "speaker_1",
+   "start_ms": 264030,
+   "end_ms": 267790,
+   "text": "[речь]"
+  },
+  {
+   "speaker_id": "speaker_1",
+   "start_ms": 269430,
+   "end_ms": 270230,
+   "text": "[речь]"
+  },
+  {
+   "speaker_id": "speaker_1",
+   "start_ms": 271260,
+   "end_ms": 271650,
+   "text": "[речь]"
+  },
+  {
+   "speaker_id": "speaker_1",
+   "start_ms": 273780,
+   "end_ms": 277990,
+   "text": "[речь]"
+  },
+  {
+   "speaker_id": "speaker_2",
+   "start_ms": 276790,
+   "end_ms": 277220,
+   "text": "[речь]"
+  },
+  {
+   "speaker_id": "speaker_1",
+   "start_ms": 279200,
+   "end_ms": 281590,
+   "text": "[речь]"
+  },
+  {
+   "speaker_id": "speaker_2",
+   "start_ms": 279300,
+   "end_ms": 282970,
+   "text": "[речь]"
+  },
+  {
+   "speaker_id": "speaker_1",
+   "start_ms": 283430,
+   "end_ms": 287650,
+   "text": "[речь]"
+  },
+  {
+   "speaker_id": "speaker_2",
+   "start_ms": 284110,
+   "end_ms": 285720,
+   "text": "[речь]"
+  },
+  {
+   "speaker_id": "speaker_2",
+   "start_ms": 289440,
+   "end_ms": 290040,
+   "text": "[речь]"
+  },
+  {
+   "speaker_id": "speaker_2",
+   "start_ms": 293200,
+   "end_ms": 293710,
+   "text": "[речь]"
+  },
+  {
+   "speaker_id": "speaker_1",
+   "start_ms": 293210,
+   "end_ms": 294750,
+   "text": "[речь]"
+  },
+  {
+   "speaker_id": "speaker_2",
+   "start_ms": 298340,
+   "end_ms": 306710,
+   "text": "[речь]"
+  },
+  {
+   "speaker_id": "speaker_1",
+   "start_ms": 298760,
+   "end_ms": 299950,
+   "text": "[речь]"
+  },
+  {
+   "speaker_id": "speaker_1",
+   "start_ms": 302900,
+   "end_ms": 303470,
+   "text": "[речь]"
+  },
+  {
+   "speaker_id": "speaker_1",
+   "start_ms": 308150,
+   "end_ms": 308580,
+   "text": "[речь]"
+  },
+  {
+   "speaker_id": "speaker_2",
+   "start_ms": 309520,
+   "end_ms": 309880,
+   "text": "[речь]"
+  },
+  {
+   "speaker_id": "speaker_1",
+   "start_ms": 309820,
+   "end_ms": 315400,
+   "text": "[речь]"
+  },
+  {
+   "speaker_id": "speaker_2",
+   "start_ms": 317300,
+   "end_ms": 318590,
+   "text": "[речь]"
+  },
+  {
+   "speaker_id": "speaker_1",
+   "start_ms": 320810,
+   "end_ms": 321790,
+   "text": "[речь]"
+  },
+  {
+   "speaker_id": "speaker_1",
+   "start_ms": 322930,
+   "end_ms": 324470,
+   "text": "[речь]"
+  },
+  {
+   "speaker_id": "speaker_1",
+   "start_ms": 326250,
+   "end_ms": 328860,
+   "text": "[речь]"
+  },
+  {
+   "speaker_id": "speaker_1",
+   "start_ms": 331040,
+   "end_ms": 337860,
+   "text": "[речь]"
+  },
+  {
+   "speaker_id": "speaker_2",
+   "start_ms": 331090,
+   "end_ms": 331790,
+   "text": "[речь]"
+  },
+  {
+   "speaker_id": "speaker_2",
+   "start_ms": 339440,
+   "end_ms": 341850,
+   "text": "[речь]"
+  },
+  {
+   "speaker_id": "speaker_2",
+   "start_ms": 342920,
+   "end_ms": 346700,
+   "text": "[речь]"
+  },
+  {
+   "speaker_id": "speaker_1",
+   "start_ms": 343260,
+   "end_ms": 343760,
+   "text": "[речь]"
+  },
+  {
+   "speaker_id": "speaker_1",
+   "start_ms": 345630,
+   "end_ms": 352290,
+   "text": "[речь]"
+  },
+  {
+   "speaker_id": "speaker_1",
+   "start_ms": 353690,
+   "end_ms": 356320,
+   "text": "[речь]"
+  },
+  {
+   "speaker_id": "speaker_2",
+   "start_ms": 353780,
+   "end_ms": 354160,
+   "text": "[речь]"
+  },
+  {
+   "speaker_id": "speaker_2",
+   "start_ms": 358620,
+   "end_ms": 362410,
+   "text": "[речь]"
+  },
+  {
+   "speaker_id": "speaker_2",
+   "start_ms": 363880,
+   "end_ms": 378230,
+   "text": "[речь]"
+  },
+  {
+   "speaker_id": "speaker_2",
+   "start_ms": 379530,
+   "end_ms": 380500,
+   "text": "[речь]"
+  },
+  {
+   "speaker_id": "speaker_2",
+   "start_ms": 381590,
+   "end_ms": 385620,
+   "text": "[речь]"
+  },
+  {
+   "speaker_id": "speaker_1",
+   "start_ms": 386310,
+   "end_ms": 387230,
+   "text": "[речь]"
+  },
+  {
+   "speaker_id": "speaker_2",
+   "start_ms": 387420,
+   "end_ms": 394030,
+   "text": "[речь]"
+  },
+  {
+   "speaker_id": "speaker_1",
+   "start_ms": 389380,
+   "end_ms": 389840,
+   "text": "[речь]"
+  },
+  {
+   "speaker_id": "speaker_2",
+   "start_ms": 395130,
+   "end_ms": 395710,
+   "text": "[речь]"
+  },
+  {
+   "speaker_id": "speaker_1",
+   "start_ms": 397170,
+   "end_ms": 397630,
+   "text": "[речь]"
+  },
+  {
+   "speaker_id": "speaker_2",
+   "start_ms": 397410,
+   "end_ms": 403110,
+   "text": "[речь]"
+  },
+  {
+   "speaker_id": "speaker_2",
+   "start_ms": 404270,
+   "end_ms": 406440,
+   "text": "[речь]"
+  },
+  {
+   "speaker_id": "speaker_1",
+   "start_ms": 404480,
+   "end_ms": 404930,
+   "text": "[речь]"
+  },
+  {
+   "speaker_id": "speaker_1",
+   "start_ms": 407840,
+   "end_ms": 408270,
+   "text": "[речь]"
+  },
+  {
+   "speaker_id": "speaker_2",
+   "start_ms": 407850,
+   "end_ms": 409620,
+   "text": "[речь]"
+  },
+  {
+   "speaker_id": "speaker_2",
+   "start_ms": 411330,
+   "end_ms": 414020,
+   "text": "[речь]"
+  },
+  {
+   "speaker_id": "speaker_2",
+   "start_ms": 415220,
+   "end_ms": 415580,
+   "text": "[речь]"
+  },
+  {
+   "speaker_id": "speaker_1",
+   "start_ms": 415230,
+   "end_ms": 415810,
+   "text": "[речь]"
+  },
+  {
+   "speaker_id": "speaker_1",
+   "start_ms": 418510,
+   "end_ms": 419430,
+   "text": "[речь]"
+  }
+ ]
+}

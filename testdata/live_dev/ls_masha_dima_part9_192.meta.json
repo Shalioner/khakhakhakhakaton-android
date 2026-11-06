@@ -1,0 +1,81 @@
+{
+ "duration_ms": 217236,
+ "source": "langswap_dialogs",
+ "source_id": "langswap/dialogs-ru-emotional-conversations masha_dima_part9 #192..227",
+ "license": "OpenRAIL (Langswap Dialogs, LICENSE.md: use restrictions flow down; cite arXiv:2607.14310)",
+ "has_text": true,
+ "conditions": {
+  "speakers": 2,
+  "quality": "studio",
+  "voices": "mf_stylized",
+  "dynamics": "turns_overlap",
+  "format": "wav44k_to_wav16k_mono",
+  "origin": "studio_actors",
+  "has_text": true,
+  "duration": "5m"
+ },
+ "speakers_src": [
+  "Dima",
+  "Masha"
+ ],
+ "styles": {
+  "happy": 2,
+  "angry": 10,
+  "laughing": 2,
+  "sad": 10,
+  "disgust": 1,
+  "neutral": 6,
+  "whisper": 5
+ },
+ "params": {
+  "pause_s": [
+   0.15,
+   0.9
+  ],
+  "same_spk_pause_s": [
+   0.2,
+   0.6
+  ],
+  "overlap_prob": 0.15,
+  "max_overlap": 0.1,
+  "merge_same_speaker_gap_ms": 1000
+ },
+ "utterances_src": [
+  "wavs/masha_dima_part9_192.wav",
+  "wavs/masha_dima_part9_193.wav",
+  "wavs/masha_dima_part9_194.wav",
+  "wavs/masha_dima_part9_195.wav",
+  "wavs/masha_dima_part9_196.wav",
+  "wavs/masha_dima_part9_197.wav",
+  "wavs/masha_dima_part9_198.wav",
+  "wavs/masha_dima_part9_199.wav",
+  "wavs/masha_dima_part9_200.wav",
+  "wavs/masha_dima_part9_201.wav",
+  "wavs/masha_dima_part9_202.wav",
+  "wavs/masha_dima_part9_203.wav",
+  "wavs/masha_dima_part9_204.wav",
+  "wavs/masha_dima_part9_205.wav",
+  "wavs/masha_dima_part9_206.wav",
+  "wavs/masha_dima_part9_207.wav",
+  "wavs/masha_dima_part9_208.wav",
+  "wavs/masha_dima_part9_209.wav",
+  "wavs/masha_dima_part9_210.wav",
+  "wavs/masha_dima_part9_211.wav",
+  "wavs/masha_dima_part9_212.wav",
+  "wavs/masha_dima_part9_213.wav",
+  "wavs/masha_dima_part9_214.wav",
+  "wavs/masha_dima_part9_215.wav",
+  "wavs/masha_dima_part9_216.wav",
+  "wavs/masha_dima_part9_217.wav",
+  "wavs/masha_dima_part9_218.wav",
+  "wavs/masha_dima_part9_219.wav",
+  "wavs/masha_dima_part9_220.wav",
+  "wavs/masha_dima_part9_221.wav",
+  "wavs/masha_dima_part9_222.wav",
+  "wavs/masha_dima_part9_223.wav",
+  "wavs/masha_dima_part9_224.wav",
+  "wavs/masha_dima_part9_225.wav",
+  "wavs/masha_dima_part9_226.wav",
+  "wavs/masha_dima_part9_227.wav"
+ ]
+}
