@@ -1,0 +1,45 @@
+{
+ "duration_ms": 63093,
+ "source": "dirs",
+ "conditions": {
+  "speakers": 1,
+  "duration": "5m",
+  "quality": "clean",
+  "dynamics": "turns",
+  "origin": "synthetic",
+  "voices": "mono"
+ },
+ "params": {
+  "overlap_prob": 0.0,
+  "max_overlap": 0.2,
+  "max_pause": 1.5,
+  "snr_db": null,
+  "seed": 10
+ },
+ "speakers_src": [
+  "S4"
+ ],
+ "utterances_src": [
+  ".cache\\tts\\src_dev\\S4\\088.wav",
+  ".cache\\tts\\src_dev\\S4\\097.wav",
+  ".cache\\tts\\src_dev\\S4\\096.wav",
+  ".cache\\tts\\src_dev\\S4\\083.wav",
+  ".cache\\tts\\src_dev\\S4\\095.wav",
+  ".cache\\tts\\src_dev\\S4\\087.wav",
+  ".cache\\tts\\src_dev\\S4\\077.wav",
+  ".cache\\tts\\src_dev\\S4\\091.wav",
+  ".cache\\tts\\src_dev\\S4\\078.wav",
+  ".cache\\tts\\src_dev\\S4\\089.wav",
+  ".cache\\tts\\src_dev\\S4\\098.wav",
+  ".cache\\tts\\src_dev\\S4\\085.wav",
+  ".cache\\tts\\src_dev\\S4\\093.wav",
+  ".cache\\tts\\src_dev\\S4\\090.wav",
+  ".cache\\tts\\src_dev\\S4\\079.wav",
+  ".cache\\tts\\src_dev\\S4\\081.wav",
+  ".cache\\tts\\src_dev\\S4\\094.wav",
+  ".cache\\tts\\src_dev\\S4\\099.wav",
+  ".cache\\tts\\src_dev\\S4\\092.wav",
+  ".cache\\tts\\src_dev\\S4\\080.wav",
+  ".cache\\tts\\src_dev\\S4\\086.wav"
+ ]
+}

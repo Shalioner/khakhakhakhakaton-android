@@ -91,7 +91,7 @@ fun main(args: Array<String>) {
                     .setPyannote(OfflineSpeakerSegmentationPyannoteModelConfig.builder().setModel(File(models, "seg/model.onnx").path).build())
                     .setNumThreads(threads).build(),
             )
-            .setEmbedding(SpeakerEmbeddingExtractorConfig.builder().setModel(File(models, "spk/embedding.onnx").path).setNumThreads(threads).build())
+            .setEmbedding(SpeakerEmbeddingExtractorConfig.builder().setModel(opt["emb"] ?: File(models, "spk/embedding.onnx").path).setNumThreads(threads).build())
             .setClustering(FastClusteringConfig.builder().setNumClusters(numClusters).setThreshold(clusterThreshold).build())
             .setMinDurationOn(0.2f).setMinDurationOff(0.5f).build(),
     )
@@ -100,7 +100,7 @@ fun main(args: Array<String>) {
     println("bench: ${files.size} files, asr=$asrKind threads=$threads cluster_threshold=$clusterThreshold")
     val timings = StringBuilder("{\n")
     var invalid = 0
-    files.forEachIndexed { idx, f ->
+    files.forEachIndexed { idx, f -> try {
         val t0 = System.currentTimeMillis()
         val samples = WavReader.read16kMono(f)
         val durationMs = samples.size * 1000L / 16000
@@ -161,7 +161,13 @@ fun main(args: Array<String>) {
             tDecode - t0, tVad - tDecode, tAsr - tVad, tDia - tAsr) + " " + llmInfo)
         timings.append("  \"${f.nameWithoutExtension}\": {\"proc_ms\": $proc, \"audio_ms\": $durationMs, \"asr_ms\": ${tAsr - tVad}, \"diar_ms\": ${tDia - tAsr}, \"llm_ms\": ${tEnd - tBuild}}")
             .append(if (idx < files.size - 1) ",\n" else "\n")
-    }
+    } catch (e: Exception) {
+        // Битый/неподдерживаемый файл — понятная ошибка, прогон продолжается.
+        invalid++
+        System.err.println("${f.name}: ERROR ${e.message}")
+        timings.append("  \"${f.nameWithoutExtension}\": {\"error\": ${JsonExporter.quote(e.message ?: e.toString())}}")
+            .append(if (idx < files.size - 1) ",\n" else "\n")
+    } }
     timings.append("}\n")
     File(outDir, "timings.json").writeText(timings.toString())
     recognizer.release(); diarizer.release(); llm?.close()

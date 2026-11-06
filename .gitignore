@@ -49,3 +49,5 @@ src/android/libs/
 
 # generated audio (regenerate: tools/tts_lines.ps1 + tools/make_synthetic.py)
 testdata/smoke/*.wav
+testdata/dev/*.wav
+testdata/test/*.wav

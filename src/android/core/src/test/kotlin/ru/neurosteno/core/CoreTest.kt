@@ -175,3 +175,25 @@ class LlmGatingTest {
         assertTrue(p.length <= 520 && p.endsWith("…\n"))
     }
 }
+
+class VadRefineTest {
+    private fun w(t: String, s: Long, e: Long) = Word(t, s, e)
+
+    @Test
+    fun endExtendedToVadButNotIntoNeighbour() {
+        val utts = listOf(
+            RawUtterance(0, listOf(w("здравствуйте", 1000, 1120))),
+            RawUtterance(1, listOf(w("да", 1900, 2000))),
+        )
+        val vad = listOf(SpeechSegment(900, 1800), SpeechSegment(1850, 2500))
+        val b = Segmenter.refineWithVad(utts, vad, PipelineConfig())
+        assertEquals(900L to 1800L, b[0])
+        assertEquals(1850L to 2500L, b[1])
+        // перекрытие: следующая реплика начинается раньше конца VAD — конец обрезается по соседу
+        val b2 = Segmenter.refineWithVad(
+            listOf(RawUtterance(0, listOf(w("а", 0, 100))), RawUtterance(1, listOf(w("б", 300, 400)))),
+            listOf(SpeechSegment(0, 900)), PipelineConfig(),
+        )
+        assertEquals(0L to 300L, b2[0])
+    }
+}

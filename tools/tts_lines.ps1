@@ -1,3 +1,7 @@
+# Синтез реплик голосами Windows (WinRT OneCore) для синтетических тестов.
+# Вход: TSV  speaker<TAB>voice<TAB>pitch<TAB>rate<TAB>text   (pitch: "+0%", "-15%"; rate: 1.0)
+# Выход: OutDir/<speaker>/<NNN>.wav + .txt  — формат --layout dirs для tools/make_synthetic.py
+# Запуск: powershell -ExecutionPolicy Bypass -File tools\tts_lines.ps1 -ListFile lines.tsv -OutDir .cache\tts\src
 param([string]$ListFile, [string]$OutDir)
 Add-Type -AssemblyName System.Runtime.WindowsRuntime
 $null = [Windows.Media.SpeechSynthesis.SpeechSynthesizer, Windows.Media.SpeechSynthesis, ContentType = WindowsRuntime]
@@ -9,14 +13,22 @@ $voices = [Windows.Media.SpeechSynthesis.SpeechSynthesizer]::AllVoices | Where-O
 $lines = Get-Content -Encoding UTF8 $ListFile
 $i = 0
 foreach ($line in $lines) {
-  $parts = $line.Split("`t"); $v = $parts[0]; $text = $parts[1]
-  $synth.Voice = ($voices | Where-Object { $_.DisplayName -like "*$v*" })[0]
-  $stream = Await ($synth.SynthesizeTextToStreamAsync($text)) ([Windows.Media.SpeechSynthesis.SpeechSynthesisStream])
+  if ($line.Trim() -eq '') { continue }
+  $p = $line.Split("`t")
+  $spk = $p[0]; $voice = ($voices | Where-Object { $_.DisplayName -like "*$($p[1])*" })[0]
+  $text = $p[4]
+  $synth.Voice = $voice
+  $esc = [System.Security.SecurityElement]::Escape($text)
+  $ssml = "<speak version='1.0' xmlns='http://www.w3.org/2001/10/synthesis' xml:lang='ru-RU'><voice name='$($voice.DisplayName)'><prosody pitch='$($p[2])' rate='$($p[3])'>$esc</prosody></voice></speak>"
+  $stream = Await ($synth.SynthesizeSsmlToStreamAsync($ssml)) ([Windows.Media.SpeechSynthesis.SpeechSynthesisStream])
   $reader = New-Object Windows.Storage.Streams.DataReader($stream.GetInputStreamAt(0))
   $n = [uint32]$stream.Size
   $null = Await ($reader.LoadAsync($n)) ([uint32])
   $buf = New-Object byte[] $n; $reader.ReadBytes($buf)
-  [System.IO.File]::WriteAllBytes((Join-Path $OutDir ("{0:D3}_{1}.wav" -f $i, $v)), $buf)
+  $dir = Join-Path $OutDir $spk; New-Item -ItemType Directory -Force $dir | Out-Null
+  $base = Join-Path $dir ("{0:D3}" -f $i)
+  [System.IO.File]::WriteAllBytes("$base.wav", $buf)
+  [System.IO.File]::WriteAllText("$base.txt", $text, (New-Object System.Text.UTF8Encoding($false)))
   $i++
 }
 Write-Output "ok $i"

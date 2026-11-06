@@ -1,0 +1,184 @@
+{
+ "transcript": [
+  {
+   "speaker_id": "speaker_1",
+   "start_ms": 300,
+   "end_ms": 1440,
+   "text": "Единогласно."
+  },
+  {
+   "speaker_id": "speaker_2",
+   "start_ms": 1661,
+   "end_ms": 5021,
+   "text": "Кто отвечает за закупку корма на следующий месяц?"
+  },
+  {
+   "speaker_id": "speaker_1",
+   "start_ms": 5324,
+   "end_ms": 8044,
+   "text": "Тогда записываем решение в протокол."
+  },
+  {
+   "speaker_id": "speaker_2",
+   "start_ms": 8370,
+   "end_ms": 11390,
+   "text": "Я могу помурлыкать, у меня хороший голос."
+  },
+  {
+   "speaker_id": "speaker_1",
+   "start_ms": 11269,
+   "end_ms": 17229,
+   "text": "Соседи с пятого этажа жалуются, что кто-то бегает по лестнице после полуночи."
+  },
+  {
+   "speaker_id": "speaker_2",
+   "start_ms": 17932,
+   "end_ms": 19472,
+   "text": "Сколько это будет стоить?"
+  },
+  {
+   "speaker_id": "speaker_1",
+   "start_ms": 20518,
+   "end_ms": 23438,
+   "text": "Сколько котов сейчас живёт в нашем доме?"
+  },
+  {
+   "speaker_id": "speaker_2",
+   "start_ms": 23463,
+   "end_ms": 24503,
+   "text": "Единогласно."
+  },
+  {
+   "speaker_id": "speaker_1",
+   "start_ms": 25998,
+   "end_ms": 28978,
+   "text": "Нужно выбрать место, меню и программу."
+  },
+  {
+   "speaker_id": "speaker_2",
+   "start_ms": 30015,
+   "end_ms": 31955,
+   "text": "Извините, продолжайте."
+  },
+  {
+   "speaker_id": "speaker_1",
+   "start_ms": 31941,
+   "end_ms": 35301,
+   "text": "Я могу помурлыкать, у меня хороший голос."
+  },
+  {
+   "speaker_id": "speaker_2",
+   "start_ms": 36183,
+   "end_ms": 39923,
+   "text": "Меню беру на себя: рыба, курица и немного сливок."
+  },
+  {
+   "speaker_id": "speaker_1",
+   "start_ms": 40399,
+   "end_ms": 42259,
+   "text": "Ага, хорошая мысль."
+  },
+  {
+   "speaker_id": "speaker_2",
+   "start_ms": 42201,
+   "end_ms": 43881,
+   "text": "Ага, хорошая мысль."
+  },
+  {
+   "speaker_id": "speaker_1",
+   "start_ms": 43599,
+   "end_ms": 45979,
+   "text": "Никто и не говорит, что это ты."
+  },
+  {
+   "speaker_id": "speaker_2",
+   "start_ms": 46170,
+   "end_ms": 50250,
+   "text": "Спасибо всем за участие, заседание объявляю закрытым."
+  },
+  {
+   "speaker_id": "speaker_1",
+   "start_ms": 50543,
+   "end_ms": 54723,
+   "text": "Меню беру на себя: рыба, курица и немного сливок."
+  },
+  {
+   "speaker_id": "speaker_2",
+   "start_ms": 54223,
+   "end_ms": 59583,
+   "text": "Соседи с пятого этажа жалуются, что кто-то бегает по лестнице после полуночи."
+  },
+  {
+   "speaker_id": "speaker_1",
+   "start_ms": 59624,
+   "end_ms": 62784,
+   "text": "Отличная идея, давайте так и сделаем."
+  },
+  {
+   "speaker_id": "speaker_2",
+   "start_ms": 63069,
+   "end_ms": 65749,
+   "text": "Нужно выбрать место, меню и программу."
+  },
+  {
+   "speaker_id": "speaker_1",
+   "start_ms": 65739,
+   "end_ms": 70919,
+   "text": "В прошлом месяце дежурства часто пропускали, особенно по выходным."
+  },
+  {
+   "speaker_id": "speaker_2",
+   "start_ms": 72010,
+   "end_ms": 74870,
+   "text": "Отличная идея, давайте так и сделаем."
+  },
+  {
+   "speaker_id": "speaker_1",
+   "start_ms": 76149,
+   "end_ms": 78249,
+   "text": "А гости тоже получают корм?"
+  },
+  {
+   "speaker_id": "speaker_2",
+   "start_ms": 78722,
+   "end_ms": 79342,
+   "text": "Понятно."
+  },
+  {
+   "speaker_id": "speaker_1",
+   "start_ms": 80809,
+   "end_ms": 81489,
+   "text": "Понятно."
+  },
+  {
+   "speaker_id": "speaker_2",
+   "start_ms": 82000,
+   "end_ms": 82600,
+   "text": "Хорошо."
+  },
+  {
+   "speaker_id": "speaker_1",
+   "start_ms": 83072,
+   "end_ms": 83752,
+   "text": "Хорошо."
+  },
+  {
+   "speaker_id": "speaker_2",
+   "start_ms": 83812,
+   "end_ms": 85192,
+   "text": "А если пойдёт дождь?"
+  },
+  {
+   "speaker_id": "speaker_1",
+   "start_ms": 85080,
+   "end_ms": 86600,
+   "text": "А если пойдёт дождь?"
+  },
+  {
+   "speaker_id": "speaker_2",
+   "start_ms": 87868,
+   "end_ms": 90308,
+   "text": "Тогда записываем решение в протокол."
+  }
+ ]
+}

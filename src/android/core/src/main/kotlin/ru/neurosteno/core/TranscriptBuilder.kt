@@ -32,8 +32,9 @@ object TranscriptBuilder {
         utts = SpeakerRelabel.mergeAdjacentSameSpeaker(utts, cfg.pauseSplitMs)
         val names = SpeakerRelabel.relabel(utts)
 
-        val out = utts.map { u ->
-            val (s, e) = Segmenter.snapToVad(u.startMs, u.endMs, vad, cfg)
+        val bounds = Segmenter.refineWithVad(utts, vad, cfg)
+        val out = utts.mapIndexed { i, u ->
+            val (s, e) = bounds[i]
             Utterance(names.getValue(u.speakerIdx), s.coerceIn(0, durationMs), e.coerceIn(0, durationMs), u.text.trim())
         }
         return Transcript(fixOverlapsAndOrder(out), durationMs)
