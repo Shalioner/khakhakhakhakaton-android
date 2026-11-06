@@ -20,5 +20,5 @@ class Summarizer(private val llm: LlmBackend) {
     }
 
     fun summarize(t: Transcript, maxTokens: Int = 320, shouldStop: () -> Boolean = { false }): String =
-        if (t.utterances.isEmpty()) "" else llm.complete(system, prompt(t), maxTokens, shouldStop).trim()
+        if (t.utterances.isEmpty()) "" else llm.completeMultiline(system, prompt(t), maxTokens, shouldStop).trim()
 }

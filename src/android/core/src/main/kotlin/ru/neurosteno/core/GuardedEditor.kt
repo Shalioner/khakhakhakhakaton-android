@@ -4,6 +4,10 @@ package ru.neurosteno.core
 interface LlmBackend : AutoCloseable {
     /** Генерация до maxTokens; должна прерываться, когда shouldStop() == true. */
     fun complete(system: String, user: String, maxTokens: Int, shouldStop: () -> Boolean): String
+
+    /** Многострочный ответ (протокол). По умолчанию — то же, что complete(). */
+    fun completeMultiline(system: String, user: String, maxTokens: Int, shouldStop: () -> Boolean): String =
+        complete(system, user, maxTokens, shouldStop)
 }
 
 /**

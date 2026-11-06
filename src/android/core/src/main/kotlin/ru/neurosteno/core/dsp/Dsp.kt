@@ -27,34 +27,51 @@ class StreamingResampler(private val inRate: Int, private val outRate: Int, priv
             started = true
         }
         val buf = history + input + (if (flush) FloatArray(halfTaps) else FloatArray(0))
-        val out = ArrayList<Float>((input.size / ratio).toInt() + 4)
         val limit = buf.size - halfTaps - 1
-        while (pos < limit) {
-            out += interp(buf, pos)
+        val n = if (pos < limit) ((limit - pos) / ratio).toInt() + 2 else 0
+        val out = FloatArray(n)
+        var cnt = 0
+        while (pos < limit && cnt < n) {
+            out[cnt++] = interp(buf, pos)
             pos += ratio
         }
         val keepFrom = maxOf(0, floor(pos).toInt() - halfTaps)
         history = buf.copyOfRange(keepFrom, buf.size)
         pos -= keepFrom
-        return out.toFloatArray()
+        return if (cnt == n) out else out.copyOf(cnt)
+    }
+
+    /**
+     * Полифазная таблица: веса ядра для PHASES дробных сдвигов, нормированные к сумме 1.
+     * Раньше sin/cos считались на каждый тап каждого сэмпла — минуты на часовом mp3.
+     */
+    private val taps = 2 * halfTaps
+    private val table: Array<FloatArray> = Array(PHASES + 1) { ph ->
+        val frac = ph.toDouble() / PHASES
+        val w = DoubleArray(taps) { t ->
+            val x = (t - halfTaps + 1) - frac
+            val sinc = if (abs(x) < 1e-9) 1.0 else sin(PI * cutoff * x) / (PI * cutoff * x)
+            sinc * (0.5 + 0.5 * cos(PI * x / (halfTaps + 1)))
+        }
+        val s = w.sum()
+        FloatArray(taps) { (w[it] / s).toFloat() }
     }
 
     private fun interp(buf: FloatArray, p: Double): Float {
         val center = floor(p).toInt()
-        val frac = p - center
-        var acc = 0.0
-        var norm = 0.0
-        for (k in -halfTaps + 1..halfTaps) {
-            val idx = center + k
-            if (idx < 0 || idx >= buf.size) continue
-            val x = k - frac
-            val sinc = if (abs(x) < 1e-9) 1.0 else sin(PI * cutoff * x) / (PI * cutoff * x)
-            val win = 0.5 + 0.5 * cos(PI * x / (halfTaps + 1))
-            val w = sinc * win
-            acc += buf[idx] * w
-            norm += w
+        val w = table[((p - center) * PHASES + 0.5).toInt()]
+        val base = center - halfTaps + 1
+        var acc = 0f
+        if (base >= 0 && base + taps <= buf.size) {
+            for (t in 0 until taps) acc += buf[base + t] * w[t]
+        } else {
+            for (t in 0 until taps) { val idx = base + t; if (idx in buf.indices) acc += buf[idx] * w[t] }
         }
-        return (acc / norm).toFloat()
+        return acc
+    }
+
+    private companion object {
+        const val PHASES = 512
     }
 }
 

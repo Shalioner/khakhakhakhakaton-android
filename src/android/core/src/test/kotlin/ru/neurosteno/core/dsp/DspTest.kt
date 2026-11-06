@@ -49,3 +49,18 @@ class DspTest {
         assertEquals(1f, Loudness.gain(FloatArray(0), 0.5f))
     }
 }
+
+class ResamplerSpeedTest {
+    @Test
+    fun tenMinutesOf48kUnderTwoSeconds() {
+        val x = FloatArray(48_000 * 600) { kotlin.math.sin(it * 0.01).toFloat() * 0.3f }
+        val t0 = System.nanoTime()
+        val rs = StreamingResampler(48_000, 16_000)
+        var total = 0
+        var i = 0
+        while (i < x.size) { val e = minOf(i + 4096, x.size); total += rs.process(x.copyOfRange(i, e), flush = e == x.size).size; i = e }
+        val ms = (System.nanoTime() - t0) / 1_000_000
+        kotlin.test.assertTrue(kotlin.math.abs(total - 16_000 * 600) < 50, "len=$total")
+        kotlin.test.assertTrue(ms < 2000, "resample 10 min took $ms ms")
+    }
+}

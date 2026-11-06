@@ -80,7 +80,7 @@ Java_ru_neurosteno_llm_LlamaNative_load(JNIEnv *env, jobject, jstring jpath, jin
 // Возвращает UTF-8 байты ответа (декодируются в Kotlin) или null при ошибке.
 extern "C" JNIEXPORT jbyteArray JNICALL
 Java_ru_neurosteno_llm_LlamaNative_complete(JNIEnv *env, jobject, jlong ptr, jbyteArray jsys, jbyteArray juser,
-                                            jint maxTokens, jobject stopper) {
+                                            jint maxTokens, jboolean singleLine, jobject stopper) {
     auto *h = reinterpret_cast<Handle *>(ptr);
     if (!h) return nullptr;
     std::string sys = jbytes(env, jsys), user = jbytes(env, juser);
@@ -121,9 +121,11 @@ Java_ru_neurosteno_llm_LlamaNative_complete(JNIEnv *env, jobject, jlong ptr, jby
         if (llama_vocab_is_eog(vocab, tok)) break;
         int len = llama_token_to_piece(vocab, tok, piece, sizeof(piece), 0, false);
         if (len > 0) out.append(piece, len);
-        // Ответ — одна строка: перевод строки означает конец полезного текста.
-        size_t nl = out.find('\n');
-        if (nl != std::string::npos && out.find_first_not_of(" \r\n") < nl) break;
+        // Для правки реплики ответ — одна строка: перевод строки означает конец полезного текста.
+        if (singleLine) {
+            size_t nl = out.find('\n');
+            if (nl != std::string::npos && out.find_first_not_of(" \r\n") < nl) break;
+        }
         llama_batch b = llama_batch_get_one(&tok, 1);
         if (llama_decode(h->ctx, b) != 0) { LOGE("decode failed at %d", i); break; }
     }

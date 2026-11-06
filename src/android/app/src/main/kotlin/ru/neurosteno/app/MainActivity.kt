@@ -78,7 +78,8 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         if (Build.VERSION.SDK_INT >= 33) requestPermissions(arrayOf(Manifest.permission.POST_NOTIFICATIONS), 1)
-        val shared: Uri? = if (intent?.action == Intent.ACTION_SEND) {
+        // После пересоздания activity (savedInstanceState != null) не запускаем «Поделиться» повторно.
+        val shared: Uri? = if (savedInstanceState == null && intent?.action == Intent.ACTION_SEND) {
             @Suppress("DEPRECATION") intent.getParcelableExtra(Intent.EXTRA_STREAM)
         } else null
         setContent {
@@ -158,7 +159,16 @@ fun ImportScreen(onPick: () -> Unit, onRecorded: (java.io.File) -> Unit) {
         if (ok) startRec() else Toast.makeText(ctx, "Нет разрешения на микрофон", Toast.LENGTH_SHORT).show()
     }
     LaunchedEffect(recorder) {
-        while (recorder != null) { recMs = recorder!!.recordedMs; recLevel = recorder!!.level; delay(100) }
+        while (recorder != null) {
+            val r = recorder!!
+            recMs = r.recordedMs; recLevel = r.level
+            if (!r.isRunning) { // запись прервалась сама (ошибка микрофона)
+                r.stop(); recorder = null
+                Toast.makeText(ctx, r.error ?: "Запись остановлена", Toast.LENGTH_LONG).show()
+                break
+            }
+            delay(100)
+        }
     }
     DisposableEffect(Unit) { onDispose { recorder?.stop() } }
     recorder?.let { r ->

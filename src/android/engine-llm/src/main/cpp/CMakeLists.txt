@@ -32,6 +32,8 @@ add_subdirectory(llama.cpp)
 add_library(neurollm SHARED llm_jni.cpp)
 if (ANDROID)
     target_link_libraries(neurollm PRIVATE llama ggml android log)
+    # Выравнивание сегментов 16 КБ: устройства Android 15+ со страницами 16 КБ иначе не загрузят .so.
+    target_link_options(neurollm PRIVATE "-Wl,-z,max-page-size=16384")
 else()
     find_package(JNI REQUIRED)
     target_include_directories(neurollm PRIVATE ${JNI_INCLUDE_DIRS})
