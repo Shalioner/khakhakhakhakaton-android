@@ -116,3 +116,35 @@ class CoreTest {
         assertTrue(ContractValidator.validate(t).isEmpty())
     }
 }
+
+class GuardedEditorTest {
+    private class FakeLlm(val f: (String) -> String) : LlmBackend {
+        override fun complete(system: String, user: String, maxTokens: Int, shouldStop: () -> Boolean) = f(user)
+        override fun close() {}
+    }
+
+    @Test
+    fun acceptsPunctuationRejectsWordChanges() {
+        val t = Transcript(listOf(
+            Utterance("speaker_1", 0, 1000, "привет как дела"),
+            Utterance("speaker_2", 1000, 2000, "хорошо спасибо"),
+        ), 2000)
+        val llm = FakeLlm { if (it.startsWith("привет")) "Привет, как дела?" else "Отлично, спасибо!" }
+        val (out, st) = GuardedEditor(llm).edit(t, budgetMs = 10_000)
+        assertEquals("Привет, как дела?", out.utterances[0].text)
+        assertEquals("хорошо спасибо", out.utterances[1].text)
+        assertEquals(1, st.rejected)
+        assertEquals(t.utterances.map { Triple(it.speakerId, it.startMs, it.endMs) }, out.utterances.map { Triple(it.speakerId, it.startMs, it.endMs) })
+    }
+
+    @Test
+    fun budgetExceededKeepsAsrText() {
+        var now = 0L
+        val t = Transcript(List(3) { Utterance("speaker_1", it * 1000L, it * 1000L + 500, "раз два") }, 3000)
+        val llm = FakeLlm { now += 600; "Раз, два." }
+        val (out, st) = GuardedEditor(llm) { now }.edit(t, budgetMs = 1000)
+        assertEquals(2, st.accepted)
+        assertEquals(1, st.skipped)
+        assertEquals("раз два", out.utterances[2].text)
+    }
+}

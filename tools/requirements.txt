@@ -1,0 +1,6 @@
+# Eval tooling (python tools/*.py). Install: python -m pip install -r tools/requirements.txt
+jiwer>=3.0
+numpy>=1.24
+scipy>=1.10
+soundfile>=0.12
+pytest>=7.0

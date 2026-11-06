@@ -13,4 +13,4 @@ dependencyResolutionManagement {
     }
 }
 rootProject.name = "neuro-stenographer"
-include(":core")
+include(":core", ":engine-audio", ":engine-sherpa", ":app", ":bench")

@@ -46,3 +46,6 @@ artifacts/demo/*.wav
 src/android/libs/
 *.gguf
 *.onnx
+
+# generated audio (regenerate: tools/tts_lines.ps1 + tools/make_synthetic.py)
+testdata/smoke/*.wav
