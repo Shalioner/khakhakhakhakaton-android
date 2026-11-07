@@ -208,6 +208,10 @@ class Pipeline(
 
     companion object {
         const val TAG = "NeuroSteno"
-        fun defaultThreads(): Int = Runtime.getRuntime().availableProcessors().coerceIn(2, 8)
+        /**
+         * Потоков всего (делятся пополам между параллельными ASR и диаризацией). Замер на Pixel 6a (Tensor, 2+2+4 ядра):
+         * 8 → RTF 0.79, 6 → 0.63, 4 → 0.54, 2 → 0.57 — больше потоков упираются в малые ядра. Берём половину ядер, не больше 4.
+         */
+        fun defaultThreads(): Int = (Runtime.getRuntime().availableProcessors() / 2).coerceIn(2, 4)
     }
 }
