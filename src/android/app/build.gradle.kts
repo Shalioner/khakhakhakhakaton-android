@@ -36,6 +36,8 @@ android {
     buildFeatures { compose = true }
 }
 dependencies {
+    testImplementation("junit:junit:4.13.2")
+    testImplementation("org.json:json:20240303")
     implementation(project(":core"))
     implementation(project(":engine-audio"))
     implementation(project(":engine-sherpa"))

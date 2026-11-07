@@ -7,6 +7,8 @@ import ru.neurosteno.core.JsonExporter
 import ru.neurosteno.core.Transcript
 import ru.neurosteno.core.Utterance
 import java.io.File
+import java.nio.file.Files
+import java.nio.file.StandardCopyOption
 
 /** Запись в истории: метаданные + расшифровка (в файле — строго JSON-контракт). */
 data class HistoryEntry(
@@ -19,6 +21,7 @@ data class HistoryEntry(
     val processingMs: Long,
     val audioUri: String?,
     val warnings: List<String>,
+    val speakerNames: Map<String, String> = emptyMap(),
 )
 
 /**
@@ -70,9 +73,10 @@ object HistoryStore {
     fun get(ctx: Context, id: String): HistoryEntry? =
         File(dir(ctx), "$id.meta.json").takeIf { it.exists() }?.let { runCatching { readMeta(id, it) }.getOrNull() }
 
-    private fun readMeta(id: String, f: File): HistoryEntry {
+    internal fun readMeta(id: String, f: File): HistoryEntry {
         val o = JSONObject(f.readText())
         val w = o.optJSONArray("warnings")
+        val names = o.optJSONObject("speakerNames")
         return HistoryEntry(
             id = id,
             name = o.getString("name"),
@@ -83,21 +87,64 @@ object HistoryStore {
             processingMs = o.optLong("processingMs"),
             audioUri = if (o.isNull("audioUri")) null else o.optString("audioUri"),
             warnings = List(w?.length() ?: 0) { w!!.getString(it) },
+            speakerNames = names?.keys()?.asSequence()?.associateWith { names.getString(it) }.orEmpty(),
         )
     }
 
     /** Расшифровка из файла контракта. */
     fun transcript(ctx: Context, e: HistoryEntry): Transcript? = runCatching {
-        val arr = JSONObject(File(dir(ctx), "${e.id}.json").readText()).getJSONArray("transcript")
-        Transcript(
+        readTranscript(File(dir(ctx), "${e.id}.json"), e.durationMs)
+    }.onFailure { Log.e(Pipeline.TAG, "history read failed", it) }.getOrNull()
+
+    internal fun readTranscript(file: File, durationMs: Long): Transcript {
+        val arr = JSONObject(file.readText()).getJSONArray("transcript")
+        return Transcript(
             List(arr.length()) { i ->
                 val u = arr.getJSONObject(i)
                 Utterance(u.getString("speaker_id"), u.getLong("start_ms"), u.getLong("end_ms"), u.getString("text"))
             },
-            e.durationMs,
+            durationMs,
         )
-    }.onFailure { Log.e(Pipeline.TAG, "history read failed", it) }.getOrNull()
+    }
 
+    fun renameSpeaker(ctx: Context, e: HistoryEntry, speakerId: String, name: String): HistoryEntry =
+        renameSpeaker(File(dir(ctx), "${e.id}.meta.json"), e.id, speakerId, name)
+
+    @Synchronized
+    internal fun renameSpeaker(file: File, id: String, speakerId: String, name: String): HistoryEntry {
+        require(name.isNotBlank())
+        val meta = JSONObject(file.readText())
+        val names = meta.optJSONObject("speakerNames") ?: JSONObject()
+        names.put(speakerId, name.trim())
+        replace(file, meta.put("speakerNames", names).toString())
+        return readMeta(id, file)
+    }
+
+    fun editText(ctx: Context, e: HistoryEntry, index: Int, text: String): Transcript =
+        editText(File(dir(ctx), "${e.id}.json"), e.durationMs, index, text)
+
+    @Synchronized
+    internal fun editText(file: File, durationMs: Long, index: Int, text: String): Transcript {
+        require(text.isNotBlank())
+        val transcript = readTranscript(file, durationMs)
+        val utterances = transcript.utterances.toMutableList()
+        utterances[index] = utterances[index].copy(text = text.trim())
+        val updated = transcript.copy(utterances = utterances)
+        replace(file, JsonExporter.toJson(updated))
+        return updated
+    }
+
+    private fun replace(file: File, content: String) {
+        val temp = File.createTempFile("edit-", ".tmp", file.parentFile)
+        try {
+            temp.writeText(content)
+            Files.move(temp.toPath(), file.toPath(), StandardCopyOption.ATOMIC_MOVE, StandardCopyOption.REPLACE_EXISTING)
+        } finally {
+            temp.delete()
+        }
+    }
+
+    @Synchronized
     fun delete(ctx: Context, e: HistoryEntry) {
         File(dir(ctx), "${e.id}.json").delete()
         File(dir(ctx), "${e.id}.meta.json").delete()
