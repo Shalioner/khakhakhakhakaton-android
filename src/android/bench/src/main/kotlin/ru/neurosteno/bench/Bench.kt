@@ -81,7 +81,7 @@ fun main(args: Array<String>) {
             .setNemo(OfflineNemoEncDecCtcModelConfig.builder().setModel(File(ctcDir, "model.int8.onnx").path).build())
             .setTokens(File(ctcDir, "tokens.txt").path).setNumThreads(threads).build()
     } else {
-        val d = File(opt["asr-dir"] ?: File(models, "asr").path)
+        val d = File(opt["asr-dir"] ?: File(models, "asr_words").path) // как в APK: модель слов
         OfflineModelConfig.builder()
             .setTransducer(
                 OfflineTransducerModelConfig.builder().setEncoder(File(d, "encoder.int8.onnx").path)
@@ -102,7 +102,7 @@ fun main(args: Array<String>) {
     )
     val recognizer = recognizerOf(modelCfg)
     // --punct-dir: второй проход e2e-моделью только ради регистра/пунктуации (PunctTransfer)
-    val punctRecognizer = opt["punct-dir"]?.let { recognizerOf(rnnt(File(it))) }
+    val punctRecognizer = (opt["punct-dir"] ?: File(models, "asr").path).takeIf { it != "none" }?.let { recognizerOf(rnnt(File(it))) } // как в APK; --punct-dir none — без второго прохода
     val diarizer = OfflineSpeakerDiarization(
         OfflineSpeakerDiarizationConfig.builder()
             .setSegmentation(

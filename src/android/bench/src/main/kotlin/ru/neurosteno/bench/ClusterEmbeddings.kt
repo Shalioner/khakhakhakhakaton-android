@@ -54,7 +54,7 @@ class ClusterEmbeddings(modelPath: String, threads: Int, val cfg: ClusterPost.Co
 
     companion object {
         fun fromOptions(opt: Map<String, String>, embModel: String, threads: Int): ClusterEmbeddings? {
-            if ((opt["cluster-post"] ?: "off") != "on") return null
+            if ((opt["cluster-post"] ?: "on") != "on") return null
             val d = ClusterPost.Config.from(PipelineConfig())
             val cfg = d.copy(
                 mergeCos = opt["cp-merge"]?.toFloat() ?: d.mergeCos,

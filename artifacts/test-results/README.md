@@ -13,6 +13,6 @@
 Воспроизвести:
 ```bash
 bash tools/build_synth_matrix.sh
-cd src/android && ./gradlew :bench:run --args="testdata/test out/test_words --asr-dir src/android/app/src/main/assets/models/asr_words --punct-dir src/android/app/src/main/assets/models/asr"
+cd src/android && ./gradlew :bench:run --args="testdata/test out/test_words"   # по умолчанию — тот же конвейер, что в APK
 python tools/report.py testdata/test out/test_words --timings out/test_words/timings.json --md artifacts/test-results/test_report.md
 ```
