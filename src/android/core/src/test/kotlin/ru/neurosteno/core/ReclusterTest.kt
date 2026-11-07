@@ -228,8 +228,12 @@ class ReclusterTest {
         val embs = synth(2, 15, seed = 11) { s, i -> s * 3 + i % 3 }
         val turns = embs.map { SpeakerTurn(it.window.speakerIdx, it.window.startMs, it.window.endMs) }
         val cp = ClusterPost.Config(mergeRatio = 0.97f)
-        assertEquals(ClusterPost.apply(turns, embs, cp), Recluster.afterClusterPost(turns, embs, cp, null))
-        val out = Recluster.afterClusterPost(turns, embs, cp, Recluster.Config(method = Recluster.Method.AHC_SIL, guardWindows = 15))
+        val disabled = PipelineConfig(reclusterEnabled = false).reclusterConfig()
+        assertEquals(null, disabled)
+        assertEquals(ClusterPost.apply(turns, embs, cp), Recluster.afterClusterPost(turns, embs, cp, disabled))
+        val rc = PipelineConfig().reclusterConfig()
+        assertEquals(Recluster.Config(method = Recluster.Method.AHC_SIL, guardWindows = 15), rc)
+        val out = Recluster.afterClusterPost(turns, embs, cp, rc)
         assertEquals(2, Recluster.count(out))
     }
 }

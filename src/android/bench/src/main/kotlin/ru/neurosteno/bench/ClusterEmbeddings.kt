@@ -17,7 +17,7 @@ import java.io.File
 /**
  * Постобработка кластеров для bench (то же, что SherpaClusterEmbedder на телефоне):
  * эмбеддинги CAM++ на чистых окнах турнов → ClusterPost (слияние по центроидам + мелкие кластеры).
- * Опции: --cluster-post on|off (по умолчанию off), --cp-ratio 0.97, --cp-merge 1.1 (косинус центроидов),
+ * Опции: --cluster-post on|off (по умолчанию on), --cp-ratio 0.97, --cp-merge 1.1 (косинус центроидов),
  * --cp-tiny-ms 0, --cp-tiny-frac 0, --cp-max-windows 40, --cp-recluster <ключи Recluster>, --cp-dump <dir> (дамп турнов/слов/VAD/эмбеддингов).
  * Перебор по дампам без пересчёта моделей: bench cluster-sweep <dump_dir> <out_root> <name>=<c|r>:<порог>:<tinyMs>:<tinyFrac>[:<minWindows>][@minSpeakerMs] ...
  */
@@ -56,7 +56,8 @@ class ClusterEmbeddings(modelPath: String, threads: Int, val cfg: ClusterPost.Co
     companion object {
         fun fromOptions(opt: Map<String, String>, embModel: String, threads: Int): ClusterEmbeddings? {
             if ((opt["cluster-post"] ?: "on") != "on") return null
-            val d = ClusterPost.Config.from(PipelineConfig())
+            val pipeline = PipelineConfig()
+            val d = ClusterPost.Config.from(pipeline)
             val cfg = d.copy(
                 mergeCos = opt["cp-merge"]?.toFloat() ?: d.mergeCos,
                 mergeRatio = opt["cp-ratio"]?.toFloat() ?: d.mergeRatio,
@@ -64,8 +65,14 @@ class ClusterEmbeddings(modelPath: String, threads: Int, val cfg: ClusterPost.Co
                 tinyFrac = opt["cp-tiny-frac"]?.toFloat() ?: d.tinyFrac,
                 maxWindowsPerCluster = opt["cp-max-windows"]?.toInt() ?: d.maxWindowsPerCluster,
             )
-            // --cp-recluster m=sil,guard=15 — после ClusterPost повторная кластеризация окон (ключи как в cluster-sweep x:)
-            val rc = opt["cp-recluster"]?.let { s -> reclusterConfig(s.split(',').filter { it.isNotBlank() }.associate { it.substringBefore('=') to it.substringAfter('=') }) }
+            // По умолчанию как в приложении. Для сравнения только с ClusterPost: --cp-recluster off.
+            val rc = when (val spec = opt["cp-recluster"]) {
+                null -> pipeline.reclusterConfig()
+                "off" -> null
+                else -> reclusterConfig(spec.split(',').filter { it.isNotBlank() }.associate {
+                    it.substringBefore('=') to it.substringAfter('=')
+                })
+            }
             println("cluster-post: $cfg recluster: $rc")
             return ClusterEmbeddings(embModel, threads, cfg, opt["cp-dump"]?.let(::File), rc)
         }
