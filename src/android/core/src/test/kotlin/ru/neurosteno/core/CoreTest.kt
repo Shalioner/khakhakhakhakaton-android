@@ -172,7 +172,7 @@ class LlmGatingTest {
             override fun complete(system: String, user: String, maxTokens: Int, shouldStop: () -> Boolean) = ""
             override fun close() {}
         }).prompt(t, 500)
-        assertTrue(p.length <= 520 && p.endsWith("…\n"))
+        assertTrue(p.length <= 540 && p.contains("…\n") && p.endsWith("Тема разговора:"))
     }
 }
 
@@ -239,5 +239,30 @@ class AbsorbGapTest {
         val out = SpeakerRelabel.absorbTinySpeakers(utts, 1500, 1000)
         assertEquals(2, out.size)
         assertEquals(20_000, out[1].startMs)
+    }
+}
+
+class SummarizerCleanTest {
+    private fun summarizer(answer: String) = Summarizer(object : LlmBackend {
+        override fun complete(system: String, user: String, maxTokens: Int, shouldStop: () -> Boolean) = answer
+        override fun close() {}
+    })
+    private val t = Transcript(listOf(
+        Utterance("speaker_1", 0, 3000, "Предлагаю провести праздник во дворе."),
+        Utterance("speaker_2", 3000, 4000, "Праздник лучше в подвале."),
+    ), 4000)
+
+    @Test
+    fun echoedTopicIsDroppedFactsStay() {
+        val out = summarizer("**Предлагаю провести праздник во дворе.**").summarize(t)
+        assertTrue(!out.startsWith("Тема:"))
+        assertTrue(out.contains("Участников: 2 (Говорящий 1 — 75 %, Говорящий 2 — 25 %)"))
+        assertTrue(out.contains("Ключевые слова: праздник"))
+    }
+
+    @Test
+    fun ownTopicIsKept() {
+        val out = summarizer("Обсуждение места для праздника котов").summarize(t)
+        assertTrue(out.startsWith("Тема: Обсуждение места для праздника котов"))
     }
 }
