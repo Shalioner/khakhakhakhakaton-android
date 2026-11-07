@@ -209,6 +209,19 @@ class PunctTransferTest {
     }
 
     @Test
+    fun partialSecondPassDoesNotTurnTheEndOfAStatementIntoAQuestion() {
+        val words = ws("тогда", "соберёмся", "в", "подвале", "там", "сухо", "и", "тепло")
+        val expected = words.toMutableList().apply { this[0] = first().copy(text = "Тогда") }
+        assertEquals(expected, PunctTransfer.transfer(words, "Сухо и тепло?"))
+    }
+
+    @Test
+    fun keepsQuestionAfterAlignedSentenceBoundary() {
+        val out = PunctTransfer.transfer(ws("идём", "сухо", "и", "тепло"), "Идём. Сухо и тепло?")
+        assertEquals(listOf("Идём.", "Сухо", "и", "тепло?"), out.map { it.text })
+    }
+
+    @Test
     fun numbersStayWordsWithTrailingPunct() {
         val out = PunctTransfer.transfer(
             ws("сейчас", "живёт", "двадцать", "семь", "котов", "три", "тысячи"),
