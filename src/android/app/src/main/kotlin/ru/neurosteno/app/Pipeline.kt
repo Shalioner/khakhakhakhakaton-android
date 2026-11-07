@@ -11,6 +11,7 @@ import kotlinx.coroutines.withContext
 import ru.neurosteno.audio.AudioDecoder
 import ru.neurosteno.audio.PcmFile
 import ru.neurosteno.core.Chunker
+import ru.neurosteno.core.AudioWorkspace
 import ru.neurosteno.core.ClusterPost
 import ru.neurosteno.core.ContractValidator
 import ru.neurosteno.core.GuardedEditor
@@ -27,7 +28,6 @@ import ru.neurosteno.sherpa.SherpaAsr
 import ru.neurosteno.sherpa.SherpaClusterEmbedder
 import ru.neurosteno.sherpa.SherpaDiarizer
 import ru.neurosteno.sherpa.SherpaVad
-import java.io.File
 import java.util.concurrent.Executors
 
 enum class Stage(val title: String) {
@@ -48,8 +48,11 @@ data class PipelineResult(
     val timings: List<StageTiming>,
     val totalMs: Long,
     val warnings: List<String>,
-) {
+    private val workspace: AudioWorkspace? = null,
+) : AutoCloseable {
     val rtf: Double get() = if (transcript.durationMs > 0) totalMs.toDouble() / transcript.durationMs else 0.0
+    /** Освобождает временное аудио. До закрытия pcm доступен вызывающей стороне. */
+    override fun close() { workspace?.close() }
 }
 
 /** Фабрика LLM: null, если модель/движок недоступны (тогда шаг пропускается — fallback на текст ASR). */
@@ -64,6 +67,18 @@ class Pipeline(
     fun interface Listener { fun onProgress(stage: Stage, fraction: Float) }
 
     suspend fun run(uri: Uri, listener: Listener, isCancelled: () -> Boolean): PipelineResult {
+        val workspace = AudioWorkspace(context.cacheDir)
+        try {
+            return runInWorkspace(uri, listener, isCancelled, workspace)
+        } catch (e: Throwable) {
+            workspace.close()
+            throw e
+        }
+    }
+
+    private suspend fun runInWorkspace(
+        uri: Uri, listener: Listener, isCancelled: () -> Boolean, workspace: AudioWorkspace,
+    ): PipelineResult {
         val t0 = System.currentTimeMillis()
         val timings: MutableList<StageTiming> = java.util.Collections.synchronizedList(ArrayList())
         val warnings: MutableList<String> = java.util.Collections.synchronizedList(ArrayList())
@@ -74,9 +89,9 @@ class Pipeline(
             return block().also { timings += StageTiming(stage, System.currentTimeMillis() - s) }
         }
 
-        val pcmFile = File(context.cacheDir, "input.pcm")
+        val pcmFile = workspace.pcm
         // Копия с AGC — только для ASR (диаризация получает исходный нормализованный сигнал).
-        val asrPcmFile = if (cfg.agcEnabled) File(context.cacheDir, "input_asr.pcm") else null
+        val asrPcmFile = if (cfg.agcEnabled) workspace.asrPcm else null
         val pcm = withContext(Dispatchers.IO) {
             timed(Stage.DECODE) {
                 AudioDecoder(context).decode(uri, pcmFile, { listener.onProgress(Stage.DECODE, it) }, isCancelled, asrAgcFile = asrPcmFile, agcMaxGain = cfg.agcMaxGain)
@@ -194,7 +209,7 @@ class Pipeline(
             warnings += "Нарушения контракта: ${errors.take(3)}"
         }
         listener.onProgress(Stage.DONE, 1f)
-        return PipelineResult(transcript, pcm, timings.toList(), System.currentTimeMillis() - t0, warnings.toList())
+        return PipelineResult(transcript, pcm, timings.toList(), System.currentTimeMillis() - t0, warnings.toList(), workspace)
     }
 
     /**
