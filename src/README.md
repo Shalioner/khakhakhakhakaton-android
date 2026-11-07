@@ -1,6 +1,6 @@
 # Исходный код
 
-- `android/` — Gradle-проект приложения (модули `core`, `engine-audio`, `engine-sherpa`, `engine-llm`, `app`, `bench`). Архитектура — [docs/ARCHITECTURE.md](../docs/ARCHITECTURE.md).
+- `android/` — Gradle-проект приложения (модули `core`, `engine-audio`, `engine-sherpa`, `engine-nemotron`, `engine-llm`, `app`, `bench`). Архитектура — [docs/ARCHITECTURE.md](../docs/ARCHITECTURE.md).
 
 ## Инструкция по запуску и сборке проекта
 
@@ -11,7 +11,7 @@
 
 ### 1. Модели и библиотеки (один раз, нужен интернет только на машине сборки)
 ```bash
-python tools/fetch_models.py            # sherpa-onnx AAR/JAR + модели в src/android/app/src/main/assets/models
+python tools/fetch_models.py            # sherpa-onnx AAR/JAR + модели, включая Nemotron, в src/android/app/src/main/assets/models
 git clone https://github.com/ggml-org/llama.cpp src/android/engine-llm/src/main/cpp/llama.cpp
 git -C src/android/engine-llm/src/main/cpp/llama.cpp checkout 669204ee2b9004845b34f26466a91d003edc98aa
 ```
@@ -20,8 +20,8 @@ git -C src/android/engine-llm/src/main/cpp/llama.cpp checkout 669204ee2b9004845b
 ```bash
 cd src/android
 echo "sdk.dir=/path/to/Android/Sdk" > local.properties
-./gradlew :core:test :app:assembleRelease
-# APK: src/android/app/build/outputs/apk/release/app-release.apk (~0.8 ГБ, arm64-v8a)
+./gradlew :core:test :engine-nemotron:assembleRelease :app:assembleRelease
+# APK: src/android/app/build/outputs/apk/release/app-release.apk (~1.1 ГБ, arm64-v8a)
 ```
 
 ### 3. Установка и использование
