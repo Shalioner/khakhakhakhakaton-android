@@ -187,6 +187,7 @@ class Pipeline(
             }
         }
 
+        if (isCancelled()) throw InterruptedException("cancelled")
         val errors = ContractValidator.validate(transcript)
         if (errors.isNotEmpty()) {
             // Не должно случаться: TranscriptBuilder гарантирует инварианты. Логируем и всё равно отдаём.

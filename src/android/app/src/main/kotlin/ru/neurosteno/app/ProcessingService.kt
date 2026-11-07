@@ -78,6 +78,7 @@ class ProcessingService : Service() {
                         ProcessingRepository.state.value = ProcState.Running(name, progress.toMap(), started)
                     }
                 }) { ProcessingRepository.cancelled.get() }
+                if (ProcessingRepository.cancelled.get()) throw InterruptedException("cancelled")
                 saveLast(applicationContext, name, result)
                 val entry = HistoryStore.add(applicationContext, name, uri.toString(), result)
                 ProcessingRepository.state.value = ProcState.Done(name, result, entry.id)

@@ -25,22 +25,29 @@ class GuardedEditor(
         "Не добавляй, не удаляй, не заменяй и не переставляй слова. Ответь только исправленным текстом."
 
     fun edit(t: Transcript, budgetMs: Long, onProgress: (Float) -> Unit = {}, isCancelled: () -> Boolean = { false }): Pair<Transcript, Stats> {
+        fun checkCancelled() {
+            if (isCancelled()) throw InterruptedException("cancelled")
+        }
+        checkCancelled()
         val st = Stats()
         val start = clock()
         val deadline = start + budgetMs
         val out = t.utterances.mapIndexed { i, u ->
             onProgress(i.toFloat() / t.utterances.size.coerceAtLeast(1))
+            checkCancelled()
             if (!needsEdit(u.text)) { st.alreadyClean++; return@mapIndexed u }
-            if (isCancelled() || clock() >= deadline) { st.skipped++; return@mapIndexed u }
+            if (clock() >= deadline) { st.skipped++; return@mapIndexed u }
             val maxTok = (WordGuard.words(u.text).size * 3 + 16).coerceAtMost(512)
             val edited = runCatching {
                 llm.complete(system, u.text, maxTok) { isCancelled() || clock() >= deadline }
-            }.getOrNull()
+            }.getOrElse { if (it is InterruptedException) throw it else null }
+            checkCancelled()
             val cleaned = edited?.let(::cleanAnswer)
             val accepted = WordGuard.accept(u.text, cleaned)
             if (accepted != u.text || cleaned == u.text) st.accepted++ else st.rejected++
             u.copy(text = accepted)
         }
+        checkCancelled()
         st.elapsedMs = clock() - start
         return t.copy(utterances = out) to st
     }
