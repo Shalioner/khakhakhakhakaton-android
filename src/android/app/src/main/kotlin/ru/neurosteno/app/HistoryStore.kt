@@ -27,13 +27,21 @@ data class HistoryEntry(
  */
 object HistoryStore {
 
+    private val audioExt = setOf("wav", "mp3", "m4a", "aac", "ogg", "opus", "flac", "amr", "3gp", "mp4", "webm")
+
+    /** Имя без расширения — только если это действительно аудиорасширение («Запись 7 нояб., 18:22» не режем). */
+    fun displayTitle(name: String): String {
+        val ext = name.substringAfterLast('.', "").lowercase()
+        return if (ext in audioExt) name.substringBeforeLast('.').ifBlank { name } else name
+    }
+
     private fun dir(ctx: Context) = File(ctx.filesDir, "history").apply { mkdirs() }
 
     fun add(ctx: Context, name: String, audioUri: String?, r: PipelineResult): HistoryEntry {
         val id = System.currentTimeMillis().toString()
         val e = HistoryEntry(
             id = id,
-            name = name.substringBeforeLast('.').ifBlank { name },
+            name = displayTitle(name),
             createdAt = System.currentTimeMillis(),
             durationMs = r.transcript.durationMs,
             speakers = r.transcript.utterances.map { it.speakerId }.distinct().size,

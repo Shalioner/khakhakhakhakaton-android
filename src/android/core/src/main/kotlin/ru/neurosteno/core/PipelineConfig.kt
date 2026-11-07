@@ -53,4 +53,6 @@ data class PipelineConfig(
     val llmEnabled: Boolean = true,
     /** Файлы длиннее — ASR и диаризация последовательно (экономия пиковой RAM на телефоне). */
     val parallelMaxMs: Long = 15 * 60_000L,
+    /** Динамическая нормализация громкости речи (SpeechAgc) при декодировании. */
+    val agcEnabled: Boolean = false,
 )

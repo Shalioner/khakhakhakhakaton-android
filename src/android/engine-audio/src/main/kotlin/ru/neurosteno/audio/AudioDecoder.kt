@@ -27,10 +27,10 @@ class AudioDecoder(private val context: Context) {
 
     fun interface Progress { fun onProgress(fraction: Float) }
 
-    fun decode(uri: Uri, outFile: File, progress: Progress? = null, isCancelled: () -> Boolean = { false }): PcmFile {
+    fun decode(uri: Uri, outFile: File, progress: Progress? = null, isCancelled: () -> Boolean = { false }, agc: Boolean = false): PcmFile {
         val tmp = File(outFile.parentFile, outFile.name + ".raw")
         val stats = decodeToRaw(uri, tmp, progress, isCancelled)
-        normalize(tmp, outFile, stats)
+        normalize(tmp, outFile, stats, agc)
         tmp.delete()
         return PcmFile(outFile)
     }
@@ -158,9 +158,13 @@ class AudioDecoder(private val context: Context) {
     }
 
     /** Второй проход: умножение на коэффициент громкости (только сохраняющий без клиппинга). */
-    private fun normalize(src: File, dst: File, stats: Stats) {
+    private fun normalize(src: File, dst: File, stats: Stats, agc: Boolean) {
         val g = Loudness.gain(stats.frameRms, stats.peak)
-        if (abs(g - 1f) < 0.05f) { src.copyTo(dst, overwrite = true); return }
+        if (!agc && abs(g - 1f) < 0.05f) { src.copyTo(dst, overwrite = true); return }
+        // Динамическая нормализация поверх общей: тихие слова посреди фразы не теряются.
+        val speechAgc = if (agc) ru.neurosteno.core.dsp.SpeechAgc(
+            ru.neurosteno.core.dsp.SpeechAgc.noiseFloor(FloatArray(stats.frameRms.size) { stats.frameRms[it] * g }),
+        ) else null
         RandomAccessFile(src, "r").use { inp ->
             BufferedOutputStream(FileOutputStream(dst), 1 shl 16).use { os ->
                 val chunk = ByteArray(1 shl 16)
@@ -169,7 +173,7 @@ class AudioDecoder(private val context: Context) {
                     if (n <= 0) break
                     val sb = ByteBuffer.wrap(chunk, 0, n).order(ByteOrder.LITTLE_ENDIAN).asShortBuffer()
                     val f = FloatArray(sb.remaining()) { sb.get(it) * g / 32768f }
-                    writePcm16(os, f)
+                    writePcm16(os, speechAgc?.process(f) ?: f)
                 }
             }
         }

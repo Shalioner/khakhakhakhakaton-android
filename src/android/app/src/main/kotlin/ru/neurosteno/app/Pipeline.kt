@@ -76,7 +76,7 @@ class Pipeline(
         val pcmFile = File(context.cacheDir, "input.pcm")
         val pcm = withContext(Dispatchers.IO) {
             timed(Stage.DECODE) {
-                AudioDecoder(context).decode(uri, pcmFile, { listener.onProgress(Stage.DECODE, it) }, isCancelled)
+                AudioDecoder(context).decode(uri, pcmFile, { listener.onProgress(Stage.DECODE, it) }, isCancelled, agc = cfg.agcEnabled)
             }
         }
         val durationMs = pcm.durationMs

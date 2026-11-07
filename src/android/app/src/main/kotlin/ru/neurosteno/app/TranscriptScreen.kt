@@ -91,23 +91,34 @@ fun TranscriptScreen(entryId: String, onBack: () -> Unit, onDeleted: () -> Unit)
     val player = remember(entry.audioUri) {
         entry.audioUri?.let { u -> runCatching { MediaPlayer.create(ctx, Uri.parse(u)) }.getOrNull() }
     }
-    DisposableEffect(player) { onDispose { player?.release() } }
+    DisposableEffect(player) { onDispose { runCatching { player?.release() } } }
     var playing by remember { mutableStateOf(false) }
     var posMs by remember { mutableLongStateOf(0L) }
     var dragging by remember { mutableStateOf(false) }
     var dragFrac by remember { mutableFloatStateOf(0f) }
-    val durMs = (player?.duration?.toLong()?.takeIf { it > 0 } ?: entry.durationMs).coerceAtLeast(1)
+    // Длительность — один раз: обращение к уже освобождённому MediaPlayer бросает IllegalStateException
+    // (так приложение падало при удалении записи, пока экран доигрывал анимацию ухода).
+    val durMs = remember(player) {
+        (runCatching { player?.duration?.toLong() }.getOrNull()?.takeIf { it > 0 } ?: entry.durationMs).coerceAtLeast(1)
+    }
+    var released by remember { mutableStateOf(false) }
     LaunchedEffect(player, playing) {
-        while (player != null && playing) {
-            posMs = player.currentPosition.toLong()
-            if (!player.isPlaying) playing = false
+        while (player != null && playing && !released) {
+            val p = runCatching { player.currentPosition.toLong() to player.isPlaying }.getOrNull() ?: break
+            posMs = p.first
+            if (!p.second) playing = false
             delay(50)
         }
     }
-    fun seek(ms: Long) { player?.seekTo(ms.coerceIn(0, durMs).toInt()); posMs = ms.coerceIn(0, durMs) }
+    fun seek(ms: Long) {
+        if (released) return
+        runCatching { player?.seekTo(ms.coerceIn(0, durMs).toInt()) }
+        posMs = ms.coerceIn(0, durMs)
+    }
     fun toggle() {
         val p = player ?: return
-        if (p.isPlaying) { p.pause(); playing = false } else { p.start(); playing = true }
+        if (released) return
+        runCatching { if (p.isPlaying) { p.pause(); playing = false } else { p.start(); playing = true } }
     }
     val currentIdx = utts.indexOfLast { it.startMs <= posMs }.takeIf { it >= 0 && posMs <= utts[it].endMs + 400 } ?: -1
 
@@ -234,7 +245,12 @@ fun TranscriptScreen(entryId: String, onBack: () -> Unit, onDeleted: () -> Unit)
         title = { Text("Удалить запись?") },
         text = { Text("Расшифровка «${entry.name}» будет удалена с устройства.") },
         confirmButton = {
-            TextButton(onClick = { player?.release(); HistoryStore.delete(ctx, entry); confirmDelete = false; onDeleted() }) {
+            TextButton(onClick = {
+                // Плеер не освобождаем здесь: это сделает DisposableEffect, когда экран действительно уйдёт.
+                runCatching { if (player?.isPlaying == true) player.pause() }
+                playing = false; released = true
+                HistoryStore.delete(ctx, entry); confirmDelete = false; onDeleted()
+            }) {
                 Text("Удалить", color = MaterialTheme.colorScheme.primary)
             }
         },

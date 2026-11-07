@@ -64,3 +64,34 @@ class ResamplerSpeedTest {
         kotlin.test.assertTrue(ms < 2000, "resample 10 min took $ms ms")
     }
 }
+
+class SpeechAgcTest {
+    private fun tone(amp: Float, n: Int) = FloatArray(n) { (amp * kotlin.math.sin(it * 0.2)).toFloat() }
+    private fun rms(x: FloatArray) = kotlin.math.sqrt(x.sumOf { it.toDouble() * it } / x.size)
+
+    @Test
+    fun quietWordAfterLoudIsBoosted() {
+        val loud = tone(0.5f, 16_000); val quiet = tone(0.02f, 16_000)
+        val agc = SpeechAgc(noiseFloor = 0.001f)
+        val out = agc.process(loud + quiet)
+        val q = out.copyOfRange(16_000 + 8000, 32_000)
+        kotlin.test.assertTrue(rms(q) > rms(quiet) * 3, "quiet part should be boosted >3x, rms=${rms(q)} in=${rms(quiet)}")
+        kotlin.test.assertTrue(out.all { kotlin.math.abs(it) <= 1f })
+    }
+
+    @Test
+    fun silenceIsNotAmplified() {
+        val agc = SpeechAgc(noiseFloor = 0.01f)
+        val noise = FloatArray(16_000) { ((it * 7919 % 100) - 50) / 50f * 0.01f }
+        val out = agc.process(noise)
+        kotlin.test.assertTrue(rms(out) < rms(noise) * 1.5)
+    }
+
+    @Test
+    fun chunkedEqualsLength() {
+        val x = tone(0.1f, 10_007)
+        val agc = SpeechAgc(0.001f)
+        val a = agc.process(x.copyOfRange(0, 5000)); val b = agc.process(x.copyOfRange(5000, 10_007))
+        kotlin.test.assertEquals(10_007, a.size + b.size)
+    }
+}

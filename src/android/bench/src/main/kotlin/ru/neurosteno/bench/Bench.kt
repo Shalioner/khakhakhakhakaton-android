@@ -125,7 +125,7 @@ fun main(args: Array<String>) {
     var invalid = 0
     files.forEachIndexed { idx, f -> try {
         val t0 = System.currentTimeMillis()
-        val samples = WavReader.read16kMono(f)
+        val samples = WavReader.read16kMono(f, agc = (opt["agc"] ?: "off") == "on")
         val durationMs = samples.size * 1000L / 16000
         val tDecode = System.currentTimeMillis()
 
@@ -208,7 +208,7 @@ fun main(args: Array<String>) {
 
 /** Минимальный WAV-ридер (RIFF, PCM 16/24/32 и float32) + та же нормализация, что на телефоне. */
 object WavReader {
-    fun read16kMono(f: File): FloatArray {
+    fun read16kMono(f: File, agc: Boolean = false): FloatArray {
         val bytes = f.readBytes()
         val bb = ByteBuffer.wrap(bytes).order(ByteOrder.LITTLE_ENDIAN)
         require(String(bytes, 0, 4) == "RIFF" && String(bytes, 8, 4) == "WAVE") { "${f.name}: not a WAV" }
@@ -248,6 +248,10 @@ object WavReader {
         }
         val peak = res.maxOfOrNull { abs(it) } ?: 0f
         val g = Loudness.gain(rms, peak)
-        return FloatArray(res.size) { (res[it] * g).coerceIn(-1f, 1f) }
+        val norm = FloatArray(res.size) { (res[it] * g).coerceIn(-1f, 1f) }
+        if (!agc) return norm
+        // динамическая нормализация (как AudioDecoder на телефоне при включённом AGC)
+        val floor = ru.neurosteno.core.dsp.SpeechAgc.noiseFloor(FloatArray(rms.size) { rms[it] * g })
+        return ru.neurosteno.core.dsp.SpeechAgc(floor).process(norm)
     }
 }

@@ -106,3 +106,75 @@ object Loudness {
         return minOf(g, peakLimit / peak, maxGain).coerceAtLeast(0.05f)
     }
 }
+
+/**
+ * Динамическая нормализация речи (AGC) для 16 кГц: усиление подстраивается под огибающую громкости,
+ * чтобы тихие слова посреди фразы не терялись на фоне громких (наблюдалось на записи с микрофона).
+ * - огибающая по кадрам 10 мс: быстрая атака, спад ~150 мс;
+ * - адаптация только на речи: кадры ниже noiseFloor*gateRatio держат текущее усиление (шум не раздувается);
+ * - усиление ограничено [minGain, maxGain] и сглажено; на выходе мягкий лимитер (без клиппинга).
+ * Потоковый: process() можно вызывать кусками.
+ */
+class SpeechAgc(
+    private val noiseFloor: Float,
+    private val target: Float = 0.08f,
+    private val maxGain: Float = 8f,
+    private val minGain: Float = 0.5f,
+    private val gateRatio: Float = 3f,
+) {
+    private val frame = 160
+    private var env = 0f
+    private var gain = 1f
+    private val buf = FloatArray(frame)
+    private var bufN = 0
+
+    fun process(x: FloatArray): FloatArray {
+        val out = FloatArray(x.size)
+        var o = 0
+        var i = 0
+        while (i < x.size) {
+            val take = minOf(frame - bufN, x.size - i)
+            System.arraycopy(x, i, buf, bufN, take)
+            bufN += take; i += take
+            if (bufN == frame) { o = emit(out, o, frame); bufN = 0 }
+        }
+        // хвост, не набравший кадр, обрабатываем с текущим усилением (без обновления огибающей)
+        for (k in 0 until bufN) out[o++] = limit(buf[k] * gain)
+        // хвост уже выведен — сбрасываем, чтобы не вывести повторно
+        bufN = 0
+        return out
+    }
+
+    private fun emit(out: FloatArray, start: Int, n: Int): Int {
+        var s = 0.0
+        for (k in 0 until n) s += buf[k] * buf[k]
+        val rms = sqrt(s / n).toFloat()
+        env = if (rms > env) env + 0.5f * (rms - env) else env * 0.94f + rms * 0.06f
+        val target0 = if (env > noiseFloor * gateRatio && env > 1e-4f) (target / env).coerceIn(minGain, maxGain) else gain
+        val prev = gain
+        gain = prev + 0.15f * (target0 - prev)
+        var o = start
+        for (k in 0 until n) {
+            val g = prev + (gain - prev) * k / n // линейная интерполяция усиления внутри кадра
+            out[o++] = limit(buf[k] * g)
+        }
+        return o
+    }
+
+    /** Мягкий лимитер: линейно до 0.8, выше — плавное насыщение к 1.0. */
+    private fun limit(v: Float): Float {
+        val a = abs(v)
+        if (a <= 0.8f) return v
+        val y = 0.8f + 0.2f * kotlin.math.tanh(((a - 0.8f) / 0.2f).toDouble()).toFloat()
+        return if (v < 0) -y else y
+    }
+
+    companion object {
+        /** Порог шума: 10-й перцентиль RMS кадров (тишина/фон между словами). */
+        fun noiseFloor(frameRms: FloatArray): Float {
+            if (frameRms.isEmpty()) return 1e-3f
+            val s = frameRms.sorted()
+            return s[(s.size * 0.1).toInt().coerceAtMost(s.size - 1)].coerceAtLeast(1e-4f)
+        }
+    }
+}
