@@ -31,7 +31,7 @@ sealed interface ProcState {
      * «текущая стадия» прыгала между ними (прогресс-бар дёргался — замечено на Pixel 6a).
      */
     data class Running(val fileName: String, val progress: Map<Stage, Float>, val startedAt: Long) : ProcState
-    data class Done(val fileName: String, val result: PipelineResult) : ProcState
+    data class Done(val fileName: String, val result: PipelineResult, val entryId: String) : ProcState
     data class Failed(val fileName: String, val message: String) : ProcState
 }
 
@@ -79,7 +79,8 @@ class ProcessingService : Service() {
                     }
                 }) { ProcessingRepository.cancelled.get() }
                 saveLast(applicationContext, name, result)
-                ProcessingRepository.state.value = ProcState.Done(name, result)
+                val entry = HistoryStore.add(applicationContext, name, uri.toString(), result)
+                ProcessingRepository.state.value = ProcState.Done(name, result, entry.id)
             } catch (e: InterruptedException) {
                 ProcessingRepository.state.value = ProcState.Idle
             } catch (e: AudioDecodeException) {
