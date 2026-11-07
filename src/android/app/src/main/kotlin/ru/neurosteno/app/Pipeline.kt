@@ -79,7 +79,7 @@ class Pipeline(
         val asrPcmFile = if (cfg.agcEnabled) File(context.cacheDir, "input_asr.pcm") else null
         val pcm = withContext(Dispatchers.IO) {
             timed(Stage.DECODE) {
-                AudioDecoder(context).decode(uri, pcmFile, { listener.onProgress(Stage.DECODE, it) }, isCancelled, asrAgcFile = asrPcmFile, agcMaxGain = cfg.agcMaxGain)
+                AudioDecoder(context).decode(uri, pcmFile, { listener.onProgress(Stage.DECODE, it) }, isCancelled, asrAgcFile = asrPcmFile, agcMaxGain = cfg.agcMaxGain, onWarning = { warnings += it })
             }
         }
         val durationMs = pcm.durationMs

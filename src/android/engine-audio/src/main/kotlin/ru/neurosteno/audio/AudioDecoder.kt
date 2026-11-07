@@ -34,23 +34,46 @@ class AudioDecoder(private val context: Context) {
     fun decode(
         uri: Uri, outFile: File, progress: Progress? = null, isCancelled: () -> Boolean = { false },
         asrAgcFile: File? = null, agcMaxGain: Float = 8f,
+        onWarning: (String) -> Unit = {},
     ): PcmFile {
         val tmp = File(outFile.parentFile, outFile.name + ".raw")
-        val stats = decodeToRaw(uri, tmp, progress, isCancelled)
-        normalize(tmp, outFile, stats, asrAgcFile, agcMaxGain)
-        tmp.delete()
-        return PcmFile(outFile)
+        tmp.writeBytes(ByteArray(0))
+        try {
+            val stats = context.contentResolver.openInputStream(uri)?.buffered()?.use { input ->
+                input.mark(12)
+                val header = ByteArray(12)
+                var count = 0
+                while (count < header.size) {
+                    val n = input.read(header, count, header.size - count)
+                    if (n <= 0) break
+                    count += n
+                }
+                input.reset()
+                if (count == 12 && String(header, 0, 4, Charsets.US_ASCII) == "RIFF" &&
+                    String(header, 8, 4, Charsets.US_ASCII) == "WAVE") {
+                    decodeWav(input, tmp, isCancelled, onWarning)
+                } else null
+            } ?: decodeToRaw(uri, tmp, progress, isCancelled, onWarning)
+            normalize(tmp, outFile, stats, asrAgcFile, agcMaxGain)
+            progress?.onProgress(1f)
+            return PcmFile(outFile)
+        } finally {
+            tmp.delete()
+        }
     }
 
     private class Stats(val frameRms: FloatArray, val peak: Float)
 
-    private fun decodeToRaw(uri: Uri, out: File, progress: Progress?, isCancelled: () -> Boolean): Stats {
+    private fun decodeToRaw(uri: Uri, out: File, progress: Progress?, isCancelled: () -> Boolean, onWarning: (String) -> Unit): Stats {
         val extractor = MediaExtractor()
         try {
             extractor.setDataSource(context, uri, null)
         } catch (e: Exception) {
+            extractor.release()
             throw AudioDecodeException("Не удалось открыть файл: формат не поддерживается или файл повреждён", e)
         }
+        val frameRms = FrameRmsAccumulator()
+        var peak = 0f
         var codec: MediaCodec? = null
         try {
             val track = (0 until extractor.trackCount).firstOrNull {
@@ -72,15 +95,17 @@ class AudioDecoder(private val context: Context) {
             var pcmEncoding = android.media.AudioFormat.ENCODING_PCM_16BIT
             var resampler: StreamingResampler? = null
             val dc = DcBlocker()
-            val frameRms = FrameRmsAccumulator()
-            var peak = 0f
 
             BufferedOutputStream(FileOutputStream(out), 1 shl 16).use { os ->
                 val info = MediaCodec.BufferInfo()
                 var inputDone = false
                 var outputDone = false
+                var lastOutput = android.os.SystemClock.elapsedRealtime()
                 while (!outputDone) {
                     if (isCancelled()) throw InterruptedException("cancelled")
+                    if (android.os.SystemClock.elapsedRealtime() - lastOutput >= 10_000) {
+                        throw AudioDecodeException("Декодер не выдаёт аудио более 10 секунд")
+                    }
                     if (!inputDone) {
                         val inIdx = codec.dequeueInputBuffer(10_000)
                         if (inIdx >= 0) {
@@ -103,8 +128,10 @@ class AudioDecoder(private val context: Context) {
                             channels = of.getInteger(MediaFormat.KEY_CHANNEL_COUNT)
                             if (of.containsKey(MediaFormat.KEY_PCM_ENCODING)) pcmEncoding = of.getInteger(MediaFormat.KEY_PCM_ENCODING)
                             resampler = null
+                            lastOutput = android.os.SystemClock.elapsedRealtime()
                         }
                         outIdx >= 0 -> {
+                            if (info.size > 0) lastOutput = android.os.SystemClock.elapsedRealtime()
                             val eos = info.flags and MediaCodec.BUFFER_FLAG_END_OF_STREAM != 0
                             val ob = codec.getOutputBuffer(outIdx)!!
                             ob.position(info.offset); ob.limit(info.offset + info.size)
@@ -127,17 +154,50 @@ class AudioDecoder(private val context: Context) {
             }
             if (out.length() < PcmFile.SAMPLE_RATE / 10 * 2) throw AudioDecodeException("Аудио слишком короткое или пустое")
             return Stats(frameRms.result(), peak)
-        } catch (e: AudioDecodeException) {
-            throw e
         } catch (e: InterruptedException) {
             throw e
         } catch (e: Exception) {
+            if (out.length() >= PcmFile.SAMPLE_RATE / 10 * 2) {
+                onWarning("Аудио декодировано частично: ${e.message}")
+                return Stats(frameRms.result(), peak)
+            }
             throw AudioDecodeException("Ошибка декодирования: ${e.message}", e)
         } finally {
             runCatching { codec?.stop() }
             runCatching { codec?.release() }
             extractor.release()
         }
+    }
+
+    private fun decodeWav(
+        input: java.io.InputStream, out: File, isCancelled: () -> Boolean, onWarning: (String) -> Unit,
+    ): Stats {
+        val frameRms = FrameRmsAccumulator()
+        var peak = 0f
+        BufferedOutputStream(FileOutputStream(out), 1 shl 16).use { os ->
+            try {
+                val reader = ru.neurosteno.core.WavPcmReader(input)
+                val resampler = StreamingResampler(reader.sampleRate, PcmFile.SAMPLE_RATE)
+                val dc = DcBlocker()
+                while (true) {
+                    if (isCancelled()) throw InterruptedException("cancelled")
+                    val mono = reader.readMono()
+                    val res = dc.process(resampler.process(mono, flush = mono.isEmpty()))
+                    for (v in res) peak = maxOf(peak, abs(v))
+                    frameRms.add(res)
+                    writePcm16(os, res)
+                    if (mono.isEmpty()) break
+                }
+            } catch (e: InterruptedException) {
+                throw e
+            } catch (e: Exception) {
+                os.flush()
+                if (out.length() < PcmFile.SAMPLE_RATE / 10 * 2) throw AudioDecodeException("Ошибка WAV: ${e.message}", e)
+                onWarning("Аудио декодировано частично: ${e.message}")
+            }
+        }
+        if (out.length() < PcmFile.SAMPLE_RATE / 10 * 2) throw AudioDecodeException("Аудио слишком короткое или пустое")
+        return Stats(frameRms.result(), peak)
     }
 
     private fun toMono(buf: ByteBuffer, channels: Int, encoding: Int): FloatArray {
