@@ -31,8 +31,6 @@ import ru.neurosteno.core.dsp.DcBlocker
 import ru.neurosteno.core.dsp.Loudness
 import ru.neurosteno.core.dsp.StreamingResampler
 import java.io.File
-import java.nio.ByteBuffer
-import java.nio.ByteOrder
 import kotlin.math.abs
 import kotlin.math.sqrt
 import kotlin.system.exitProcess
@@ -216,39 +214,25 @@ fun main(args: Array<String>) {
     if (invalid > 0) exitProcess(1)
 }
 
-/** Минимальный WAV-ридер (RIFF, PCM 16/24/32 и float32) + та же нормализация, что на телефоне. */
+/** Общий RIFF/PCM-декодер + та же нормализация, что на телефоне. */
 object WavReader {
     fun read16kMono(f: File, agc: Boolean = false): FloatArray {
-        val bytes = f.readBytes()
-        val bb = ByteBuffer.wrap(bytes).order(ByteOrder.LITTLE_ENDIAN)
-        require(String(bytes, 0, 4) == "RIFF" && String(bytes, 8, 4) == "WAVE") { "${f.name}: not a WAV" }
-        var pos = 12; var fmt = 1; var ch = 1; var rate = 16000; var bits = 16
-        var dataOff = -1; var dataLen = 0
-        while (pos + 8 <= bytes.size) {
-            val id = String(bytes, pos, 4); val len = bb.getInt(pos + 4)
-            if (id == "fmt ") {
-                fmt = bb.getShort(pos + 8).toInt() and 0xffff; ch = bb.getShort(pos + 10).toInt()
-                rate = bb.getInt(pos + 12); bits = bb.getShort(pos + 22).toInt()
-                if (fmt == 0xFFFE) fmt = bb.getShort(pos + 32).toInt() // WAVE_FORMAT_EXTENSIBLE subformat
-            } else if (id == "data") { dataOff = pos + 8; dataLen = minOf(len, bytes.size - dataOff); break }
-            pos += 8 + len + (len and 1)
-        }
-        require(dataOff > 0) { "${f.name}: no data chunk" }
-        val bps = bits / 8; val frames = dataLen / (bps * ch)
-        val mono = FloatArray(frames) { i ->
-            var s = 0f
-            for (c in 0 until ch) {
-                val o = dataOff + (i * ch + c) * bps
-                s += when {
-                    fmt == 3 && bits == 32 -> bb.getFloat(o)
-                    bits == 16 -> bb.getShort(o) / 32768f
-                    bits == 24 -> ((bytes[o].toInt() and 0xff) or ((bytes[o + 1].toInt() and 0xff) shl 8) or (bytes[o + 2].toInt() shl 16)) / 8388608f
-                    bits == 32 -> bb.getInt(o) / 2147483648f
-                    bits == 8 -> ((bytes[o].toInt() and 0xff) - 128) / 128f
-                    else -> error("unsupported bits $bits")
-                }
+        var rate = 16000
+        val chunks = ArrayList<FloatArray>()
+        f.inputStream().buffered().use { input ->
+            val reader = ru.neurosteno.core.WavPcmReader(input)
+            rate = reader.sampleRate
+            while (true) {
+                val chunk = reader.readMono()
+                if (chunk.isEmpty()) break
+                chunks += chunk
             }
-            s / ch
+        }
+        val mono = FloatArray(chunks.sumOf { it.size })
+        var offset = 0
+        for (chunk in chunks) {
+            chunk.copyInto(mono, offset)
+            offset += chunk.size
         }
         val res = DcBlocker().process(StreamingResampler(rate, 16000).process(mono, flush = true))
         // нормализация громкости (как AudioDecoder на Android)
