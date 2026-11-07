@@ -135,8 +135,9 @@ class Pipeline(
                             val scale = if (cfg.clusterPostEnabled) 0.85f else 1f
                             val prog: (Float) -> Unit = { f -> listener.onProgress(Stage.DIARIZATION, (f * scale).coerceAtMost(scale)) }
                             // Nemotron-3-Diarization (если включён) с откатом на pyannote+CAM++ при любой ошибке загрузки/инференса.
+                            var usedNemotron = false
                             val raw = (if (cfg.nemotronDiarizer) try {
-                                NemotronDiarizer(context, half).use { it.run(pcm, prog, isCancelled) }
+                                NemotronDiarizer(context, half).use { it.run(pcm, prog, isCancelled) }.also { usedNemotron = true }
                             } catch (e: InterruptedException) {
                                 throw e
                             } catch (e: Throwable) {
@@ -145,7 +146,8 @@ class Pipeline(
                                 null
                             } else null)
                                 ?: SherpaDiarizer(assets, engineCfg.copy(numThreads = half)).use { it.run(pcm, prog, isCancelled) }
-                            (if (cfg.clusterPostEnabled) postCluster(raw, pcm, half, isCancelled, warnings) else raw)
+                            // ClusterPost — только для pyannote+CAM++ (Nemotron сам определяет число говорящих; замер на телефоне — без него)
+                            (if (cfg.clusterPostEnabled && !usedNemotron) postCluster(raw, pcm, half, isCancelled, warnings) else raw)
                                 .also { listener.onProgress(Stage.DIARIZATION, 1f) }
                         } catch (e: InterruptedException) {
                             throw e

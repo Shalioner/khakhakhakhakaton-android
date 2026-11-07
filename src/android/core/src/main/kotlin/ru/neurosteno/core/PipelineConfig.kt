@@ -39,7 +39,8 @@ data class PipelineConfig(
      */
     val clusterPostEnabled: Boolean = true,
     /** Диаризация NVIDIA Nemotron-3-Diarization вместо pyannote+CAM++ (с откатом на них при ошибке). */
-    val nemotronDiarizer: Boolean = false,
+    // Включено 2026-11-07: Pixel 6a live_test DER 55.7 → 21.5, RTF 0.75 → 0.41 (исключение из правила 9 — см. ADR-0003).
+    val nemotronDiarizer: Boolean = true,
     val clusterPostMergeRatio: Float = 0.97f,
     val clusterPostMinWindows: Int = 3,
     /** Слияние по косинусу центроидов (>= 1 — выкл.): на dev вредит (похожие голоса cos 0.8–0.93). */
