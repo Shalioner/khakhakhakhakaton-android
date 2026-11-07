@@ -1,0 +1,4 @@
+mel_filters.bin — файл из модели NVIDIA Nemotron-3-Diarization (ONNX-экспорт NealCaren/Nemotron-3-Diarization-ONNX),
+лицензия OpenMDW-1.1 (https://openmdw.ai/license/1-1/). Model by NVIDIA. Используется только в юнит-тестах.
+Остальные файлы (features.bin, probs_every4.bin, ref.json) сгенерированы tools/spikes/nemotron_kotlin_ref.py
+на синтетическом сигнале с фейковыми сетями.

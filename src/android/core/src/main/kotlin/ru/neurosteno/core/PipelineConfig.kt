@@ -38,6 +38,8 @@ data class PipelineConfig(
      * ≥ clusterPostMinWindows окон). Подобрано на dev (плато 0.96–0.98, окна 3–5), проверено на test.
      */
     val clusterPostEnabled: Boolean = true,
+    /** Диаризация NVIDIA Nemotron-3-Diarization вместо pyannote+CAM++ (с откатом на них при ошибке). */
+    val nemotronDiarizer: Boolean = false,
     val clusterPostMergeRatio: Float = 0.97f,
     val clusterPostMinWindows: Int = 3,
     /** Слияние по косинусу центроидов (>= 1 — выкл.): на dev вредит (похожие голоса cos 0.8–0.93). */
@@ -53,6 +55,7 @@ data class PipelineConfig(
     val llmEnabled: Boolean = true,
     /** Файлы длиннее — ASR и диаризация последовательно (экономия пиковой RAM на телефоне). */
     val parallelMaxMs: Long = 15 * 60_000L,
-    /** Динамическая нормализация громкости речи (SpeechAgc) при декодировании. */
+    /** Динамическая нормализация громкости речи (SpeechAgc) — только для входа ASR. */
     val agcEnabled: Boolean = false,
+    val agcMaxGain: Float = 8f,
 )

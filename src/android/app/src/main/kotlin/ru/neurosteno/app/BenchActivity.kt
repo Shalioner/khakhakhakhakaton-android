@@ -35,8 +35,14 @@ class BenchActivity : Activity() {
         )
         val benchCfg = ru.neurosteno.core.PipelineConfig().let {
             if (intent.getBooleanExtra("seq", false)) it.copy(parallelMaxMs = 0) else it
+        }.let {
+            it.copy(
+                nemotronDiarizer = intent.getBooleanExtra("nemotron", it.nemotronDiarizer),
+                clusterPostEnabled = intent.getBooleanExtra("clusterpost", it.clusterPostEnabled),
+                agcEnabled = intent.getBooleanExtra("agc", it.agcEnabled),
+            )
         }
-        Log.i(Pipeline.TAG, "bench config: threads=$threads shift=${benchEngine.segWindowShiftRatio} seq=${benchCfg.parallelMaxMs == 0L}")
+        Log.i(Pipeline.TAG, "bench config: threads=$threads shift=${benchEngine.segWindowShiftRatio} seq=${benchCfg.parallelMaxMs == 0L} nemotron=${benchCfg.nemotronDiarizer} clusterpost=${benchCfg.clusterPostEnabled} agc=${benchCfg.agcEnabled}")
         CoroutineScope(Dispatchers.Default).launch {
             val timings = StringBuilder("{\n")
             files.forEachIndexed { i, f ->

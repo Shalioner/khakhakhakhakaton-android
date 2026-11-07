@@ -22,6 +22,7 @@ import ru.neurosteno.core.Transcript
 import ru.neurosteno.core.TranscriptBuilder
 import ru.neurosteno.sherpa.EngineConfig
 import ru.neurosteno.sherpa.ModelAssets
+import ru.neurosteno.nemotron.NemotronDiarizer
 import ru.neurosteno.sherpa.SherpaAsr
 import ru.neurosteno.sherpa.SherpaClusterEmbedder
 import ru.neurosteno.sherpa.SherpaDiarizer
@@ -74,16 +75,19 @@ class Pipeline(
         }
 
         val pcmFile = File(context.cacheDir, "input.pcm")
+        // Копия с AGC — только для ASR (диаризация получает исходный нормализованный сигнал).
+        val asrPcmFile = if (cfg.agcEnabled) File(context.cacheDir, "input_asr.pcm") else null
         val pcm = withContext(Dispatchers.IO) {
             timed(Stage.DECODE) {
-                AudioDecoder(context).decode(uri, pcmFile, { listener.onProgress(Stage.DECODE, it) }, isCancelled, agc = cfg.agcEnabled)
+                AudioDecoder(context).decode(uri, pcmFile, { listener.onProgress(Stage.DECODE, it) }, isCancelled, asrAgcFile = asrPcmFile, agcMaxGain = cfg.agcMaxGain)
             }
         }
         val durationMs = pcm.durationMs
+        val asrPcm = asrPcmFile?.takeIf { it.exists() }?.let { PcmFile(it) } ?: pcm
 
         val vadSegs = withContext(Dispatchers.Default) {
             timed(Stage.VAD) {
-                SherpaVad(assets, engineCfg).use { it.run(pcm, { f -> listener.onProgress(Stage.VAD, f) }, isCancelled) }
+                SherpaVad(assets, engineCfg).use { it.run(asrPcm, { f -> listener.onProgress(Stage.VAD, f) }, isCancelled) }
             }
         }
         val chunks = Chunker.chunks(vadSegs, durationMs, cfg)
@@ -105,12 +109,12 @@ class Pipeline(
                         val ec = engineCfg.copy(numThreads = half)
                         // Проход 1: слова и тайминги (модель без пунктуации, числа словами).
                         val byChunk = SherpaAsr(assets, ec, ModelAssets.ASR_WORDS_DIR).use {
-                            it.recognizeByChunk(pcm, chunks, { f -> listener.onProgress(Stage.ASR, f * 0.5f) }, isCancelled)
+                            it.recognizeByChunk(asrPcm, chunks, { f -> listener.onProgress(Stage.ASR, f * 0.5f) }, isCancelled)
                         }
                         // Проход 2: e2e-модель только ради регистра/пунктуации; модели грузятся по очереди (RAM).
                         val texts = try {
                             SherpaAsr(assets, ec, ModelAssets.ASR_DIR).use {
-                                it.texts(pcm, chunks, { f -> listener.onProgress(Stage.ASR, 0.5f + f * 0.5f) }, isCancelled)
+                                it.texts(asrPcm, chunks, { f -> listener.onProgress(Stage.ASR, 0.5f + f * 0.5f) }, isCancelled)
                             }
                         } catch (e: InterruptedException) {
                             throw e
@@ -127,11 +131,20 @@ class Pipeline(
                     timed(Stage.DIARIZATION) {
                         listener.onProgress(Stage.DIARIZATION, 0f) // стадия видна сразу, а не после первого колбэка sherpa
                         try {
-                            val raw = SherpaDiarizer(assets, engineCfg.copy(numThreads = half)).use {
-                                // при ClusterPost диаризация занимает 0..0.85, остальное — эмбеддинги кластеров (иначе экран «замирает»)
-                                val scale = if (cfg.clusterPostEnabled) 0.85f else 1f
-                                it.run(pcm, { f -> listener.onProgress(Stage.DIARIZATION, (f * scale).coerceAtMost(scale)) }, isCancelled)
-                            }
+                            // при ClusterPost диаризация занимает 0..0.85, остальное — эмбеддинги кластеров (иначе экран «замирает»)
+                            val scale = if (cfg.clusterPostEnabled) 0.85f else 1f
+                            val prog: (Float) -> Unit = { f -> listener.onProgress(Stage.DIARIZATION, (f * scale).coerceAtMost(scale)) }
+                            // Nemotron-3-Diarization (если включён) с откатом на pyannote+CAM++ при любой ошибке загрузки/инференса.
+                            val raw = (if (cfg.nemotronDiarizer) try {
+                                NemotronDiarizer(context, half).use { it.run(pcm, prog, isCancelled) }
+                            } catch (e: InterruptedException) {
+                                throw e
+                            } catch (e: Throwable) {
+                                Log.e(TAG, "nemotron failed, fallback to sherpa", e)
+                                warnings += "Nemotron недоступен — диаризация pyannote"
+                                null
+                            } else null)
+                                ?: SherpaDiarizer(assets, engineCfg.copy(numThreads = half)).use { it.run(pcm, prog, isCancelled) }
                             (if (cfg.clusterPostEnabled) postCluster(raw, pcm, half, isCancelled, warnings) else raw)
                                 .also { listener.onProgress(Stage.DIARIZATION, 1f) }
                         } catch (e: InterruptedException) {

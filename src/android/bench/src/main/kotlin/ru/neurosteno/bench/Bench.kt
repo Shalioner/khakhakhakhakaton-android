@@ -125,7 +125,17 @@ fun main(args: Array<String>) {
     var invalid = 0
     files.forEachIndexed { idx, f -> try {
         val t0 = System.currentTimeMillis()
-        val samples = WavReader.read16kMono(f, agc = (opt["agc"] ?: "off") == "on")
+        // --agc off | all (весь сигнал) | asr (только вход распознавания; диаризация — без AGC); --agc-gain N
+        val agcMode = opt["agc"] ?: "off"
+        val samples = WavReader.read16kMono(f, agc = agcMode == "all" || agcMode == "on")
+        val agcSamples = if (agcMode == "asr" || agcMode == "asrvad" || agcMode == "vad") {
+            var s2 = 0.0; val fr = 480
+            val rmsF = FloatArray(samples.size / fr) { k -> var a = 0.0; for (j in k * fr until (k + 1) * fr) a += samples[j] * samples[j]; kotlin.math.sqrt(a / fr).toFloat() }
+            ru.neurosteno.core.dsp.SpeechAgc(ru.neurosteno.core.dsp.SpeechAgc.noiseFloor(rmsF), maxGain = opt["agc-gain"]?.toFloat() ?: 8f).process(samples)
+        } else samples
+        // asr: AGC только в ASR; asrvad: в VAD и ASR; vad: только в VAD (ASR и диаризация — исходный сигнал)
+        val asrSamples = if (agcMode == "asr" || agcMode == "asrvad") agcSamples else samples
+        val vadSamples = if (agcMode == "asrvad" || agcMode == "vad") agcSamples else samples
         val durationMs = samples.size * 1000L / 16000
         val tDecode = System.currentTimeMillis()
 
@@ -134,7 +144,7 @@ fun main(args: Array<String>) {
         var i = 0
         while (i < samples.size) {
             val end = minOf(i + 512, samples.size)
-            val w = if (end - i == 512) samples.copyOfRange(i, end) else samples.copyOfRange(i, end) + FloatArray(512 - (end - i))
+            val w = if (end - i == 512) vadSamples.copyOfRange(i, end) else vadSamples.copyOfRange(i, end) + FloatArray(512 - (end - i))
             vad.acceptWaveform(w)
             while (!vad.empty()) {
                 val s = vad.front(); val st = s.start * 1000L / 16000
@@ -152,14 +162,14 @@ fun main(args: Array<String>) {
             val a = (c.startMs * 16).toInt().coerceIn(0, samples.size); val b = (c.endMs * 16).toInt().coerceIn(a, samples.size)
             if (b - a < 160) continue
             val stream = recognizer.createStream()
-            stream.acceptWaveform(samples.copyOfRange(a, b), 16000)
+            stream.acceptWaveform(asrSamples.copyOfRange(a, b), 16000)
             recognizer.decode(stream)
             val r = recognizer.getResult(stream)
             var cw = TokenWords.toWords(r.tokens, r.timestamps, c.startMs, c.endMs)
             stream.release()
             if (punctRecognizer != null && cw.isNotEmpty()) {
                 val ps = punctRecognizer.createStream()
-                ps.acceptWaveform(samples.copyOfRange(a, b), 16000)
+                ps.acceptWaveform(asrSamples.copyOfRange(a, b), 16000)
                 punctRecognizer.decode(ps)
                 cw = PunctTransfer.transfer(cw, punctRecognizer.getResult(ps).text)
                 ps.release()
