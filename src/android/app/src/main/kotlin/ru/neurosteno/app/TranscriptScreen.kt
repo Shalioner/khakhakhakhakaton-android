@@ -7,6 +7,8 @@ import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -43,6 +45,7 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Slider
 import androidx.compose.material3.SliderDefaults
 import androidx.compose.material3.Surface
@@ -76,8 +79,10 @@ import ru.neurosteno.core.Utterance
 @Composable
 fun TranscriptScreen(entryId: String, onBack: () -> Unit, onDeleted: () -> Unit) {
     val ctx = LocalContext.current
-    val entry = remember(entryId) { HistoryStore.get(ctx, entryId) }
-    val transcript = remember(entry) { entry?.let { HistoryStore.transcript(ctx, it) } }
+    var storedEntry by remember(entryId) { mutableStateOf(HistoryStore.get(ctx, entryId)) }
+    val entry = storedEntry
+    var storedTranscript by remember(entryId) { mutableStateOf(entry?.let { HistoryStore.transcript(ctx, it) }) }
+    val transcript = storedTranscript
     if (entry == null || transcript == null) {
         Column(Modifier.fillMaxSize().statusBarsPadding().padding(24.dp)) {
             BackButton(onBack)
@@ -145,6 +150,8 @@ fun TranscriptScreen(entryId: String, onBack: () -> Unit, onDeleted: () -> Unit)
     var summarizing by remember { mutableStateOf(false) }
     var confirmDelete by remember { mutableStateOf(false) }
     val speakers = utts.map { it.speakerId }.distinct()
+    var editingSpeaker by remember(entryId) { mutableStateOf<String?>(null) }
+    var editingRow by remember(entryId) { mutableStateOf<Int?>(null) }
 
     Column(Modifier.fillMaxSize().statusBarsPadding()) {
         // Верхняя панель
@@ -156,11 +163,12 @@ fun TranscriptScreen(entryId: String, onBack: () -> Unit, onDeleted: () -> Unit)
                 onClick = {
                     summarizing = true
                     scope.launch {
-                        summary = withContext(Dispatchers.Default) {
+                        val result = withContext(Dispatchers.Default) {
                             runCatching {
                                 LlmProvider.factory.create(ctx)?.use { Summarizer(it).summarize(transcript) } ?: "Локальная LLM недоступна"
                             }.getOrElse { "Ошибка LLM: ${it.message}" }
                         }
+                        if (storedTranscript == transcript) summary = result
                         summarizing = false
                     }
                 },
@@ -192,12 +200,14 @@ fun TranscriptScreen(entryId: String, onBack: () -> Unit, onDeleted: () -> Unit)
                         speakers.forEach { id ->
                             val c = speakerColor(id)
                             Row(
-                                Modifier.clip(RoundedCornerShape(50)).background(c.copy(alpha = 0.12f)).padding(horizontal = 10.dp, vertical = 5.dp),
+                                Modifier.clip(RoundedCornerShape(50)).background(c.copy(alpha = 0.12f))
+                                    .clickable(onClickLabel = "Переименовать говорящего") { editingSpeaker = id }
+                                    .padding(horizontal = 10.dp, vertical = 5.dp),
                                 verticalAlignment = Alignment.CenterVertically,
                             ) {
                                 Box(Modifier.size(8.dp).clip(CircleShape).background(c))
                                 Spacer(Modifier.width(6.dp))
-                                Text(speakerName(id), style = MaterialTheme.typography.labelMedium, color = c)
+                                Text(entry.speakerNames[id] ?: speakerName(id), style = MaterialTheme.typography.labelMedium, color = c)
                             }
                         }
                     }
@@ -221,7 +231,7 @@ fun TranscriptScreen(entryId: String, onBack: () -> Unit, onDeleted: () -> Unit)
                 }
             }
             itemsIndexed(utts, key = { i, _ -> i }) { i, u ->
-                UtteranceRow(u, current = i == currentIdx) {
+                UtteranceRow(u, entry.speakerNames[u.speakerId] ?: speakerName(u.speakerId), i == currentIdx, onEdit = { editingRow = i }) {
                     if (player != null) { seek(u.startMs); if (!playing) toggle() }
                 }
             }
@@ -240,6 +250,19 @@ fun TranscriptScreen(entryId: String, onBack: () -> Unit, onDeleted: () -> Unit)
         )
     }
 
+    editingSpeaker?.let { id ->
+        EditDialog("Имя говорящего", entry.speakerNames[id] ?: speakerName(id), singleLine = true,
+            onDismiss = { editingSpeaker = null }) { name ->
+            storedEntry = withContext(Dispatchers.IO) { HistoryStore.renameSpeaker(ctx, entry, id, name) }
+        }
+    }
+    editingRow?.let { index ->
+        EditDialog("Текст реплики", utts[index].text, singleLine = false,
+            onDismiss = { editingRow = null }) { text ->
+            storedTranscript = withContext(Dispatchers.IO) { HistoryStore.editText(ctx, entry, index, text) }
+            summary = null
+        }
+    }
     if (confirmDelete) AlertDialog(
         onDismissRequest = { confirmDelete = false },
         title = { Text("Удалить запись?") },
@@ -259,6 +282,42 @@ fun TranscriptScreen(entryId: String, onBack: () -> Unit, onDeleted: () -> Unit)
 }
 
 @Composable
+private fun EditDialog(title: String, initial: String, singleLine: Boolean, onDismiss: () -> Unit, onSave: suspend (String) -> Unit) {
+    var value by remember { mutableStateOf(initial) }
+    var saving by remember { mutableStateOf(false) }
+    var error by remember { mutableStateOf<String?>(null) }
+    val scope = rememberCoroutineScope()
+    AlertDialog(
+        onDismissRequest = { if (!saving) onDismiss() },
+        title = { Text(title) },
+        text = {
+            Column {
+                OutlinedTextField(value, { value = it }, singleLine = singleLine, enabled = !saving)
+                error?.let { Text(it, color = MaterialTheme.colorScheme.error) }
+            }
+        },
+        confirmButton = {
+            TextButton(enabled = !saving && value.isNotBlank(), onClick = {
+                saving = true
+                scope.launch {
+                    try {
+                        onSave(value)
+                        onDismiss()
+                    } catch (e: java.io.IOException) {
+                        error = "Не удалось сохранить: ${e.localizedMessage}"
+                    } catch (e: org.json.JSONException) {
+                        error = "Не удалось прочитать запись: ${e.localizedMessage}"
+                    } finally {
+                        saving = false
+                    }
+                }
+            }) { Text("Сохранить") }
+        },
+        dismissButton = { TextButton(enabled = !saving, onClick = onDismiss) { Text("Отмена") } },
+    )
+}
+
+@Composable
 private fun BackButton(onBack: () -> Unit) {
     TextButton(onClick = onBack) {
         Icon(Icons.AutoMirrored.Filled.ArrowBackIos, null, Modifier.size(18.dp), tint = MaterialTheme.colorScheme.secondary)
@@ -266,8 +325,9 @@ private fun BackButton(onBack: () -> Unit) {
     }
 }
 
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
-private fun UtteranceRow(u: Utterance, current: Boolean, onClick: () -> Unit) {
+private fun UtteranceRow(u: Utterance, name: String, current: Boolean, onEdit: () -> Unit, onClick: () -> Unit) {
     val c = speakerColor(u.speakerId)
     Row(
         Modifier
@@ -275,14 +335,14 @@ private fun UtteranceRow(u: Utterance, current: Boolean, onClick: () -> Unit) {
             .padding(horizontal = 12.dp, vertical = 2.dp)
             .clip(RoundedCornerShape(14.dp))
             .background(if (current) c.copy(alpha = 0.10f) else MaterialTheme.colorScheme.background)
-            .clickable(onClick = onClick)
+            .combinedClickable(onClick = onClick, onLongClickLabel = "Редактировать текст", onLongClick = onEdit)
             .padding(horizontal = 8.dp, vertical = 10.dp),
     ) {
         Box(Modifier.padding(top = 3.dp).width(3.dp).height(36.dp).clip(RoundedCornerShape(2.dp)).background(c))
         Spacer(Modifier.width(12.dp))
         Column(Modifier.weight(1f)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                Text(speakerName(u.speakerId), style = MaterialTheme.typography.labelMedium, color = c, fontWeight = FontWeight.SemiBold)
+                Text(name, style = MaterialTheme.typography.labelMedium, color = c, fontWeight = FontWeight.SemiBold)
                 Spacer(Modifier.width(8.dp))
                 Text(
                     "${fmtMs(u.startMs, tenths = false)} – ${fmtMs(u.endMs, tenths = false)}",
