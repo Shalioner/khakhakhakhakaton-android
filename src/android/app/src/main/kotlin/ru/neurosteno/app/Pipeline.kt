@@ -12,6 +12,7 @@ import ru.neurosteno.audio.AudioDecoder
 import ru.neurosteno.audio.PcmFile
 import ru.neurosteno.core.Chunker
 import ru.neurosteno.core.ClusterPost
+import ru.neurosteno.core.Recluster
 import ru.neurosteno.core.ContractValidator
 import ru.neurosteno.core.GuardedEditor
 import ru.neurosteno.core.LlmBackend
@@ -214,7 +215,7 @@ class Pipeline(
             val embs = SherpaClusterEmbedder(context.assets, engineCfg.copy(numThreads = threads)).use {
                 it.embed(pcm, ClusterPost.windows(turns, pc), isCancelled)
             }
-            ClusterPost.apply(turns, embs, pc).also {
+            Recluster.afterClusterPost(turns, embs, pc, cfg.reclusterConfig()).also {
                 Log.i(TAG, "cluster-post: ${turns.map { t -> t.speakerIdx }.distinct().size} -> ${it.map { t -> t.speakerIdx }.distinct().size} clusters, ${embs.size} windows")
             }
         } catch (e: InterruptedException) {

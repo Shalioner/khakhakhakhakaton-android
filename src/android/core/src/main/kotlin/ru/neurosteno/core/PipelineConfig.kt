@@ -59,4 +59,19 @@ data class PipelineConfig(
     /** Динамическая нормализация громкости речи (SpeechAgc) — только для входа ASR. */
     val agcEnabled: Boolean = false,
     val agcMaxGain: Float = 8f,
-)
+    /** Повторная кластеризация окон pyannote + CAM++ после ClusterPost. */
+    val reclusterEnabled: Boolean = true,
+    val reclusterGuardWindows: Int = 15,
+    val reclusterMinWindows: Int = 10,
+    val reclusterSilMin: Float = 0.1f,
+) {
+    fun reclusterConfig(): Recluster.Config? = if (reclusterEnabled) Recluster.Config(
+        method = Recluster.Method.AHC_SIL,
+        assign = Recluster.Assign.TURN,
+        guardWindows = reclusterGuardWindows,
+        minWindows = reclusterMinWindows,
+        silMin = reclusterSilMin,
+        minSpeakers = minSpeakers,
+        maxSpeakers = maxSpeakers,
+    ) else null
+}
