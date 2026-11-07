@@ -45,6 +45,8 @@ object ClusterPost {
         val tinyMs: Long = 0,
         /** ... или меньше этой доли всей речи. */
         val tinyFrac: Float = 0f,
+        /** ... или меньше этого числа окон (фрагмент, у которого ratio-слияние не оценить надёжно); 0 — выкл. */
+        val tinyWindows: Int = 0,
         /** Нижняя граница числа спикеров при слиянии. */
         val minSpeakers: Int = 1,
     ) {
@@ -174,11 +176,12 @@ object ClusterPost {
 
         // 2) мелкие кластеры → крупный с максимальным средним косинусом окон
         val tinyLimit = max(cfg.tinyMs, (cfg.tinyFrac * totalSpeech).toLong())
-        if (tinyLimit > 0) {
+        if (tinyLimit > 0 || cfg.tinyWindows > 0) {
             val roots = st.keys.toList()
-            val big = roots.filter { (speech[it] ?: 0) >= tinyLimit }
+            fun tiny(r: Int) = (speech[r] ?: 0) < tinyLimit || st.getValue(r).n < cfg.tinyWindows
+            val big = roots.filter { !tiny(it) }
             if (big.isNotEmpty()) {
-                for (r in roots.filter { (speech[it] ?: 0) < tinyLimit }) {
+                for (r in roots.filter { tiny(it) }) {
                     val s = st.getValue(r)
                     parent[r] = big.maxByOrNull { cross(s, st.getValue(it)) }!!
                 }
