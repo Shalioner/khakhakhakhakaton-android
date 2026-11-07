@@ -1,3 +1,0 @@
-C:/Users/leo/Desktop/keyszadanie/khakhakhakhakaton-android/src/android/engine-nemotron/.cxx/Release/6x5p116f/x86_64/CMakeFiles/neurort.dir
-C:/Users/leo/Desktop/keyszadanie/khakhakhakhakaton-android/src/android/engine-nemotron/.cxx/Release/6x5p116f/x86_64/CMakeFiles/edit_cache.dir
-C:/Users/leo/Desktop/keyszadanie/khakhakhakhakaton-android/src/android/engine-nemotron/.cxx/Release/6x5p116f/x86_64/CMakeFiles/rebuild_cache.dir

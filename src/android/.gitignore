@@ -6,3 +6,5 @@ build/
 app/src/main/assets/models/
 engine-llm/src/main/cpp/llama.cpp/
 engine-llm/.cxx/
+engine-nemotron/.cxx/
+*/.cxx/

@@ -1,7 +1,0 @@
-[
-{
-  "directory": "C:/Users/leo/Desktop/keyszadanie/khakhakhakhakaton-android/src/android/engine-nemotron/.cxx/Release/6x5p116f/arm64-v8a",
-  "command": "C:\\Users\\leo\\Android\\Sdk\\ndk\\27.2.12479018\\toolchains\\llvm\\prebuilt\\windows-x86_64\\bin\\clang++.exe --target=aarch64-none-linux-android28 --sysroot=C:/Users/leo/Android/Sdk/ndk/27.2.12479018/toolchains/llvm/prebuilt/windows-x86_64/sysroot -Dneurort_EXPORTS -IC:/Users/leo/Desktop/keyszadanie/khakhakhakhakaton-android/src/android/engine-nemotron/src/main/cpp/third_party/onnxruntime -g -DANDROID -fdata-sections -ffunction-sections -funwind-tables -fstack-protector-strong -no-canonical-prefixes -D_FORTIFY_SOURCE=2 -Wformat -Werror=format-security   -O3 -DNDEBUG  -fPIC -O2 -fvisibility=hidden -Wall -Wextra -std=gnu++17 -o CMakeFiles\\neurort.dir\\neurort_jni.cpp.o -c C:\\Users\\leo\\Desktop\\keyszadanie\\khakhakhakhakaton-android\\src\\android\\engine-nemotron\\src\\main\\cpp\\neurort_jni.cpp",
-  "file": "C:\\Users\\leo\\Desktop\\keyszadanie\\khakhakhakhakaton-android\\src\\android\\engine-nemotron\\src\\main\\cpp\\neurort_jni.cpp"
-}
-]
