@@ -26,7 +26,11 @@ import java.util.concurrent.atomic.AtomicBoolean
 
 sealed interface ProcState {
     data object Idle : ProcState
-    data class Running(val fileName: String, val stage: Stage, val fraction: Float, val startedAt: Long) : ProcState
+    /**
+     * progress — доля по каждой начатой стадии отдельно: ASR и диаризация идут параллельно, и одна общая
+     * «текущая стадия» прыгала между ними (прогресс-бар дёргался — замечено на Pixel 6a).
+     */
+    data class Running(val fileName: String, val progress: Map<Stage, Float>, val startedAt: Long) : ProcState
     data class Done(val fileName: String, val result: PipelineResult) : ProcState
     data class Failed(val fileName: String, val message: String) : ProcState
 }
@@ -56,19 +60,30 @@ class ProcessingService : Service() {
         if (job?.isActive == true) return START_NOT_STICKY
         ProcessingRepository.cancelled.set(false)
         val started = System.currentTimeMillis()
-        ProcessingRepository.state.value = ProcState.Running(name, Stage.DECODE, 0f, started)
+        val progress = java.util.concurrent.ConcurrentHashMap<Stage, Float>()
+        progress[Stage.DECODE] = 0f
+        ProcessingRepository.state.value = ProcState.Running(name, progress.toMap(), started)
         val wl = (getSystemService(POWER_SERVICE) as PowerManager)
             .newWakeLock(PowerManager.PARTIAL_WAKE_LOCK, "neurosteno:processing").apply { acquire(3 * 60 * 60 * 1000L) }
         job = scope.launch {
             try {
+                var lastEmit = 0L
                 val result = Pipeline(applicationContext, llmFactory = LlmProvider.factory).run(uri, { stage, f ->
-                    ProcessingRepository.state.value = ProcState.Running(name, stage, f, started)
+                    val prev = progress[stage]
+                    progress[stage] = maxOf(f, prev ?: 0f) // прогресс стадии не откатывается назад
+                    val now = System.currentTimeMillis()
+                    // не чаще 10 раз/с, кроме старта новой стадии и завершения
+                    if (prev == null || f >= 1f || now - lastEmit >= 100) {
+                        lastEmit = now
+                        ProcessingRepository.state.value = ProcState.Running(name, progress.toMap(), started)
+                    }
                 }) { ProcessingRepository.cancelled.get() }
                 saveLast(applicationContext, name, result)
                 ProcessingRepository.state.value = ProcState.Done(name, result)
             } catch (e: InterruptedException) {
                 ProcessingRepository.state.value = ProcState.Idle
             } catch (e: AudioDecodeException) {
+                Log.w(Pipeline.TAG, "decode failed: ${e.message}", e.cause ?: e)
                 ProcessingRepository.state.value = ProcState.Failed(name, e.message ?: "Ошибка декодирования")
             } catch (e: OutOfMemoryError) {
                 Log.e(Pipeline.TAG, "OOM", e)

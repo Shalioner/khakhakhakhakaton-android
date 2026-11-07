@@ -45,6 +45,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.darkColorScheme
 import androidx.compose.material3.lightColorScheme
@@ -226,16 +227,20 @@ fun ProgressScreen(s: ProcState.Running, onCancel: () -> Unit) {
         Text(s.fileName, style = MaterialTheme.typography.titleMedium)
         Text("Прошло: ${fmtMs(now - s.startedAt)}", style = MaterialTheme.typography.bodySmall)
         val order = Stage.entries.filter { it != Stage.DONE }
-        // ASR и диаризация идут параллельно — показываем текущую активную стадию.
+        val parallel = setOf(Stage.ASR, Stage.DIARIZATION)
+        val maxStarted = s.progress.keys.maxOfOrNull { it.ordinal } ?: 0
+        // Каждая стадия со своим прогрессом; ASR и диаризация видны одновременно (идут параллельно).
         order.forEach { st ->
-            val passed = st.ordinal < s.stage.ordinal
-            val active = st == s.stage
+            val p = s.progress[st]
+            val done = p != null && p >= 0.999f ||
+                (maxStarted > st.ordinal && (st !in parallel || maxStarted > Stage.DIARIZATION.ordinal))
+            val active = p != null && !done
             Column {
                 Text(
-                    (if (passed) "✓ " else if (active) "▶ " else "• ") + st.title,
+                    (if (done) "✓ " else if (active) "▶ " else "• ") + st.title,
                     fontWeight = if (active) FontWeight.Bold else FontWeight.Normal,
                 )
-                if (active) LinearProgressIndicator(progress = { s.fraction }, modifier = Modifier.fillMaxWidth().padding(top = 4.dp))
+                if (active) LinearProgressIndicator(progress = { p ?: 0f }, modifier = Modifier.fillMaxWidth().padding(top = 4.dp))
             }
         }
         Spacer(Modifier.height(12.dp))
@@ -271,30 +276,49 @@ fun TranscriptScreen(s: ProcState.Done, audio: Uri?, onNew: () -> Unit) {
     var summarizing by remember { mutableStateOf(false) }
     Column(Modifier.fillMaxSize()) {
         Column(Modifier.padding(horizontal = 16.dp, vertical = 8.dp)) {
-            Text(s.fileName, style = MaterialTheme.typography.titleMedium)
-            Text(
-                "Длительность ${fmtMs(t.durationMs)} · реплик ${t.utterances.size} · говорящих ${speakers.size} · " +
-                    "обработка ${fmtMs(s.result.totalMs)} (RTF %.2f)".format(s.result.rtf),
-                style = MaterialTheme.typography.bodySmall,
-            )
+            Row(verticalAlignment = Alignment.Top) {
+                Column(Modifier.weight(1f)) {
+                    Text(s.fileName, style = MaterialTheme.typography.titleMedium)
+                    Text(
+                        "Длительность ${fmtMs(t.durationMs)} · реплик ${t.utterances.size} · говорящих ${speakers.size} · " +
+                            "обработка ${fmtMs(s.result.totalMs)} (RTF %.2f)".format(s.result.rtf),
+                        style = MaterialTheme.typography.bodySmall,
+                    )
+                }
+                // «Новый файл» — отдельно в правом верхнем углу, а не четвёртой кнопкой в тесном ряду.
+                TextButton(onClick = onNew) { Text("Новый файл") }
+            }
             s.result.warnings.forEach { Text("⚠ $it", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.error) }
-            Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.padding(top = 8.dp)) {
-                Button(onClick = { exporter.launch(s.fileName.substringBeforeLast('.') + ".json") }) {
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth().padding(top = 8.dp)) {
+                Button(
+                    onClick = { exporter.launch(s.fileName.substringBeforeLast('.') + ".json") },
+                    modifier = Modifier.weight(1f),
+                ) {
                     Icon(Icons.Default.Save, null); Spacer(Modifier.width(6.dp)); Text("Экспорт JSON")
                 }
-                OutlinedButton(enabled = !summarizing && t.utterances.isNotEmpty(), onClick = {
-                    summarizing = true
-                    scope.launch {
-                        summary = withContext(Dispatchers.Default) {
-                            runCatching {
-                                LlmProvider.factory.create(ctx)?.use { Summarizer(it).summarize(t) } ?: "Локальная LLM недоступна"
-                            }.getOrElse { "Ошибка LLM: ${it.message}" }
+                OutlinedButton(
+                    enabled = !summarizing && t.utterances.isNotEmpty(),
+                    modifier = Modifier.weight(1f),
+                    onClick = {
+                        summarizing = true
+                        scope.launch {
+                            summary = withContext(Dispatchers.Default) {
+                                runCatching {
+                                    LlmProvider.factory.create(ctx)?.use { Summarizer(it).summarize(t) } ?: "Локальная LLM недоступна"
+                                }.getOrElse { "Ошибка LLM: ${it.message}" }
+                            }
+                            summarizing = false
                         }
-                        summarizing = false
+                    },
+                ) { Text(if (summarizing) "Протокол…" else "Протокол") }
+            }
+            if (playingIdx >= 0) {
+                Row(verticalAlignment = Alignment.CenterVertically, modifier = Modifier.padding(top = 4.dp)) {
+                    Text("Воспроизведение реплики…", style = MaterialTheme.typography.bodySmall, modifier = Modifier.weight(1f))
+                    TextButton(onClick = { player?.pause(); playingIdx = -1 }) {
+                        Icon(Icons.Default.Stop, null); Spacer(Modifier.width(4.dp)); Text("Стоп")
                     }
-                }) { Text(if (summarizing) "Протокол…" else "Протокол") }
-                OutlinedButton(onClick = onNew) { Text("Новый") }
-                if (playingIdx >= 0) IconButton(onClick = { player?.pause(); playingIdx = -1 }) { Icon(Icons.Default.Stop, "Стоп") }
+                }
             }
         }
         summary?.let {

@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- Иконка: две реплики-облачка разных цветов (два говорящих) и строки текста. -->
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp" android:height="108dp"
+    android:viewportWidth="108" android:viewportHeight="108">
+    <path android:fillColor="#FFFFFF"
+        android:pathData="M30,30h34a6,6 0,0 1,6 6v16a6,6 0,0 1,-6 6H44l-9,8v-8h-5a6,6 0,0 1,-6 -6V36a6,6 0,0 1,6 -6z"/>
+    <path android:fillColor="#1E88E5" android:pathData="M32,40h28v3h-28z M32,47h20v3h-20z"/>
+    <path android:fillColor="#FFD54F"
+        android:pathData="M48,52h30a6,6 0,0 1,6 6v12a6,6 0,0 1,-6 6h-3v7l-8,-7H48a6,6 0,0 1,-6 -6V58a6,6 0,0 1,6 -6z"/>
+    <path android:fillColor="#3949AB" android:pathData="M50,60h26v3h-26z M50,67h16v3h-16z"/>
+</vector>

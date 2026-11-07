@@ -101,6 +101,7 @@ class Pipeline(
             coroutineScope {
                 val asrJob = async(asrPool.asCoroutineDispatcher()) {
                     timed(Stage.ASR) {
+                        listener.onProgress(Stage.ASR, 0f)
                         val ec = engineCfg.copy(numThreads = half)
                         // Проход 1: слова и тайминги (модель без пунктуации, числа словами).
                         val byChunk = SherpaAsr(assets, ec, ModelAssets.ASR_WORDS_DIR).use {
@@ -124,11 +125,15 @@ class Pipeline(
                 if (sequential) asrJob.join()
                 val diaJob = async(diaPool.asCoroutineDispatcher()) {
                     timed(Stage.DIARIZATION) {
+                        listener.onProgress(Stage.DIARIZATION, 0f) // стадия видна сразу, а не после первого колбэка sherpa
                         try {
                             val raw = SherpaDiarizer(assets, engineCfg.copy(numThreads = half)).use {
-                                it.run(pcm, { f -> listener.onProgress(Stage.DIARIZATION, f) }, isCancelled)
+                                // при ClusterPost диаризация занимает 0..0.85, остальное — эмбеддинги кластеров (иначе экран «замирает»)
+                                val scale = if (cfg.clusterPostEnabled) 0.85f else 1f
+                                it.run(pcm, { f -> listener.onProgress(Stage.DIARIZATION, (f * scale).coerceAtMost(scale)) }, isCancelled)
                             }
-                            if (cfg.clusterPostEnabled) postCluster(raw, pcm, half, isCancelled, warnings) else raw
+                            (if (cfg.clusterPostEnabled) postCluster(raw, pcm, half, isCancelled, warnings) else raw)
+                                .also { listener.onProgress(Stage.DIARIZATION, 1f) }
                         } catch (e: InterruptedException) {
                             throw e
                         } catch (e: Throwable) {
