@@ -49,15 +49,20 @@ class GuardedEditor(
      * LLM вызывается только там, где ASR не оформил текст: строчная первая буква
      * или нет завершающего знака. GigaAM v3 e2e обычно уже ставит пунктуацию — экономим RTF.
      */
-    fun needsEdit(text: String): Boolean {
-        val t = text.trim()
-        if (t.isEmpty()) return false
-        val first = t.firstOrNull { it.isLetter() } ?: return false
-        return first.isLowerCase() || t.last() !in TERMINAL
-    }
+    fun needsEdit(text: String): Boolean = Companion.needsEdit(text)
 
-    private companion object {
-        const val TERMINAL = ".?!…»\""
+    companion object {
+        private const val TERMINAL = ".?!…»\""
+
+        fun needsEdit(text: String): Boolean {
+            val t = text.trim()
+            if (t.isEmpty()) return false
+            val first = t.firstOrNull { it.isLetter() } ?: return false
+            return first.isLowerCase() || t.last() !in TERMINAL
+        }
+
+        /** Нужна ли LLM вообще: если все реплики уже оформлены, модель не загружаем (экономия 2–8 с на телефоне). */
+        fun anyNeedsEdit(t: Transcript): Boolean = t.utterances.any { needsEdit(it.text) }
     }
 
     /** Убираем типичный мусор ответа: кавычки вокруг, префиксы «Ответ:», лишние строки. */

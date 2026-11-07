@@ -27,11 +27,21 @@ class BenchActivity : Activity() {
         val out = File(dir, "out").apply { mkdirs() }
         val files = dir.listFiles { f -> f.isFile && f.extension.lowercase() in AUDIO_EXT }?.sorted().orEmpty()
         tv.text = "Bench: ${files.size} файлов в $dir"
+        // Параметры подбора без пересборки: --ei threads N --ef shift 0.2 --ez seq true
+        val threads = intent.getIntExtra("threads", Pipeline.defaultThreads())
+        val benchEngine = ru.neurosteno.sherpa.EngineConfig(
+            numThreads = threads,
+            segWindowShiftRatio = intent.getFloatExtra("shift", 0.1f),
+        )
+        val benchCfg = ru.neurosteno.core.PipelineConfig().let {
+            if (intent.getBooleanExtra("seq", false)) it.copy(parallelMaxMs = 0) else it
+        }
+        Log.i(Pipeline.TAG, "bench config: threads=$threads shift=${benchEngine.segWindowShiftRatio} seq=${benchCfg.parallelMaxMs == 0L}")
         CoroutineScope(Dispatchers.Default).launch {
             val timings = StringBuilder("{\n")
             files.forEachIndexed { i, f ->
                 val line = runCatching {
-                    val r = Pipeline(applicationContext, llmFactory = LlmProvider.factory).run(Uri.fromFile(f), { _, _ -> }) { false }
+                    val r = Pipeline(applicationContext, cfg = benchCfg, engineCfg = benchEngine, llmFactory = LlmProvider.factory).run(Uri.fromFile(f), { _, _ -> }) { false }
                     File(out, f.nameWithoutExtension + ".json").writeText(JsonExporter.toJson(r.transcript))
                     val mem = Debug.getNativeHeapAllocatedSize() / (1 shl 20)
                     val stages = r.timings.joinToString(",") { "\"${it.stage.name.lowercase()}_ms\":${it.ms}" }

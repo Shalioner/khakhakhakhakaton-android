@@ -281,8 +281,8 @@ keep_awake() {
 launch_bench() {
   xa shell am force-stop "$PKG"
   [ "$DRY" = 1 ] || echo "$(now),START," >> "$RUN/events.csv"
-  if [ "$DRY" = 1 ]; then xa shell am start -W -n "$PKG/.BenchActivity"; return 0; fi
-  adb_ shell am start -W -n "$PKG/.BenchActivity" </dev/null | tr -d '\r' | grep -E 'Status|TotalTime|Error' | sed 's/^/    /'
+  if [ "$DRY" = 1 ]; then xa shell am start -W -n "$PKG/.BenchActivity" ${BENCH_EXTRAS:-}; return 0; fi
+  adb_ shell am start -W -n "$PKG/.BenchActivity" ${BENCH_EXTRAS:-} </dev/null | tr -d '\r' | grep -E 'Status|TotalTime|Error' | sed 's/^/    /'
 }
 
 # ------------------------------------------------------------------ режим bench
@@ -325,7 +325,7 @@ mode_bench() {
   xa shell mkdir -p "$REMOTE"
   if [ "$DRY" != 1 ] && [ -z "$(sh_ "ls -d $REMOTE 2>/dev/null")" ]; then
     warn "shell не создал $REMOTE — создаю запуском BenchActivity с пустой папкой"
-    adb_ shell am start -W -n "$PKG/.BenchActivity" >/dev/null 2>&1; sleep 5; adb_ shell am force-stop "$PKG"
+    adb_ shell am start -W -n "$PKG/.BenchActivity" ${BENCH_EXTRAS:-} >/dev/null 2>&1; sleep 5; adb_ shell am force-stop "$PKG"
     [ -n "$(sh_ "ls -d $REMOTE 2>/dev/null")" ] || die "нет $REMOTE на телефоне"
     adb_ shell "rm -rf $REMOTE/out"
   fi

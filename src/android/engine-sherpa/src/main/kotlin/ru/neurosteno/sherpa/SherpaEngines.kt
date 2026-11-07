@@ -52,6 +52,8 @@ data class EngineConfig(
     val numClusters: Int = -1,
     val minDurationOnSec: Float = 0.2f,
     val minDurationOffSec: Float = 0.5f,
+    /** Шаг окна сегментации pyannote (доля окна 10 с). 0.1 — дефолт sherpa; 0.2 вдвое быстрее (см. sherpa-options-ab). */
+    val segWindowShiftRatio: Float = 0.1f,
 )
 
 /** Silero VAD по файлу окнами по 512 сэмплов. Возвращает речевые интервалы в мс. */
@@ -197,7 +199,7 @@ class SherpaDiarizer(assets: AssetManager, private val cfg: EngineConfig) : Auto
         assets,
         OfflineSpeakerDiarizationConfig(
             segmentation = OfflineSpeakerSegmentationModelConfig(
-                pyannote = OfflineSpeakerSegmentationPyannoteModelConfig(model = ModelAssets.SEG),
+                pyannote = OfflineSpeakerSegmentationPyannoteModelConfig(model = ModelAssets.SEG, windowShiftRatio = cfg.segWindowShiftRatio),
                 numThreads = cfg.numThreads,
             ),
             embedding = SpeakerEmbeddingExtractorConfig(model = ModelAssets.EMB, numThreads = cfg.numThreads),
@@ -211,15 +213,28 @@ class SherpaDiarizer(assets: AssetManager, private val cfg: EngineConfig) : Auto
         val samples = pcm.readAll()
         // I1 ревью: ненулевой ответ колбэка — просьба прервать обработку [Проверить: поддерживает ли
         // sherpa-onnx 2.0.1 прерывание]; в любом случае после возврата отмена пробрасывается.
-        val segs = sd.processWithCallback(samples, callback = { done: Int, total: Int, _: Long ->
-            if (total > 0) onProgress(done.toFloat() / total)
-            if (isCancelled()) 1 else 0
-        })
+        val segs = sd.processWithCallback(samples, callback = DiarizationCallback(onProgress, isCancelled))
         if (isCancelled()) throw InterruptedException("cancelled")
         return segs.map { SpeakerTurn(it.speaker, (it.start * 1000).toLong(), (it.end * 1000).toLong()) }
     }
 
     override fun close() = sd.release()
+}
+
+/**
+ * Колбэк прогресса диаризации — ИМЕННО класс, не лямбда. JNI sherpa-onnx ищет у объекта метод
+ * invoke(IIJ)Ljava/lang/Integer; Kotlin 2.x компилирует лямбды через invokedynamic, у такого объекта есть
+ * только invoke(Object,Object,Object) → NoSuchMethodError и SIGABRT на телефоне (найдено на Pixel 6a).
+ * У класса, реализующего Function3<Int, Int, Long, Int>, компилятор генерирует нужный специализированный метод.
+ */
+class DiarizationCallback(
+    private val onProgress: (Float) -> Unit,
+    private val isCancelled: () -> Boolean,
+) : Function3<Int, Int, Long, Int> {
+    override fun invoke(done: Int, total: Int, arg: Long): Int {
+        if (total > 0) onProgress(done.toFloat() / total)
+        return if (isCancelled()) 1 else 0
+    }
 }
 
 /**

@@ -149,7 +149,7 @@ class Pipeline(
         listener.onProgress(Stage.ALIGN, 0f)
         var transcript = timed(Stage.ALIGN) { TranscriptBuilder.build(words, turns, durationMs, vadSegs, cfg = cfg) }
 
-        if (cfg.llmEnabled && transcript.utterances.isNotEmpty()) {
+        if (cfg.llmEnabled && GuardedEditor.anyNeedsEdit(transcript)) {
             transcript = withContext(Dispatchers.Default) {
                 timed(Stage.LLM) {
                     val llm = runCatching { llmFactory.create(context) }.getOrNull()
