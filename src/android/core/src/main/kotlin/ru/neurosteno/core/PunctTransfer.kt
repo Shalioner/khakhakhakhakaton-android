@@ -36,11 +36,24 @@ object PunctTransfer {
             val trailing = gapSrc.lastOrNull()?.takeLastWhile { !it.isLetterOrDigit() }.orEmpty()
             if (trailing.isNotEmpty() && out[lastDst].last().isLetterOrDigit()) out[lastDst] = out[lastDst] + trailing
         }
+        // При перекрытии второй проход иногда слышит только конец фразы как
+        // отдельное предложение. Его границы относятся к другому контексту.
+        val start = pairs.firstOrNull()?.second
+        if (start != null && start > 0 && pairs.size == src.size &&
+            pairs.last().second - start + 1 == src.size &&
+            !endsSentence(out[start - 1]) && endsSentence(src.last()) &&
+            src.dropLast(1).none(::endsSentence)) {
+            val end = pairs.last().second
+            out[start] = words[start].text + src.first().takeLastWhile { !it.isLetterOrDigit() }
+            out[end] = out[end].trimEnd('.', '?', '!', '…')
+        }
         // Страховка: слово не должно поменяться после нормализации.
         return words.mapIndexed { i, w ->
             if (WordGuard.normalizeWord(out[i]) == dstNorm[i] && out[i].isNotBlank()) w.copy(text = out[i]) else w
         }
     }
+
+    private fun endsSentence(text: String) = text.lastOrNull()?.let { it in ".?!…" } == true
 
     private fun capitalize(s: String): String {
         val i = s.indexOfFirst { it.isLetter() }
