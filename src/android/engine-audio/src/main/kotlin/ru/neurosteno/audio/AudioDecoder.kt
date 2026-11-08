@@ -13,6 +13,7 @@ import java.nio.ByteBuffer
 import java.nio.ByteOrder
 import kotlin.math.abs
 import kotlin.math.sqrt
+import ru.neurosteno.core.WavPcmReader
 import ru.neurosteno.core.dsp.DcBlocker
 import ru.neurosteno.core.dsp.Loudness
 import ru.neurosteno.core.dsp.StreamingResampler
@@ -51,7 +52,11 @@ class AudioDecoder(private val context: Context) {
                 input.reset()
                 if (count == 12 && String(header, 0, 4, Charsets.US_ASCII) == "RIFF" &&
                     String(header, 8, 4, Charsets.US_ASCII) == "WAVE") {
-                    decodeWav(input, tmp, isCancelled, onWarning)
+                    try {
+                        decodeWav(input, tmp, isCancelled, onWarning)
+                    } catch (e: WavPcmReader.UnsupportedFormat) {
+                        null
+                    }
                 } else null
             } ?: decodeToRaw(uri, tmp, progress, isCancelled, onWarning)
             normalize(tmp, outFile, stats, asrAgcFile, agcMaxGain)
@@ -176,7 +181,7 @@ class AudioDecoder(private val context: Context) {
         var peak = 0f
         BufferedOutputStream(FileOutputStream(out), 1 shl 16).use { os ->
             try {
-                val reader = ru.neurosteno.core.WavPcmReader(input)
+                val reader = WavPcmReader(input)
                 val resampler = StreamingResampler(reader.sampleRate, PcmFile.SAMPLE_RATE)
                 val dc = DcBlocker()
                 while (true) {
@@ -188,6 +193,8 @@ class AudioDecoder(private val context: Context) {
                     writePcm16(os, res)
                     if (mono.isEmpty()) break
                 }
+            } catch (e: WavPcmReader.UnsupportedFormat) {
+                throw e
             } catch (e: InterruptedException) {
                 throw e
             } catch (e: Exception) {

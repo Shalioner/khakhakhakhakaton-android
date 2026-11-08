@@ -7,6 +7,9 @@ import java.nio.ByteOrder
 
 /** Потоковый RIFF/WAVE PCM-декодер. Потоком владеет вызывающая сторона. */
 class WavPcmReader(private val input: InputStream) {
+    /** Корректный WAV-подтип, для которого вызывающей стороне нужен другой декодер. */
+    class UnsupportedFormat(message: String) : IllegalArgumentException(message)
+
     val sampleRate: Int
     val channels: Int
     private val bits: Int
@@ -44,13 +47,15 @@ class WavPcmReader(private val input: InputStream) {
         if (tag == 0xfffe) {
             require(bytes.size >= 40 && bb.getShort(16).toInt() >= 22) { "Повреждён extensible fmt" }
             val guidTail = byteArrayOf(0, 0, 16, 0, -128, 0, 0, -86, 0, 56, -101, 113)
-            require(bytes.copyOfRange(28, 40).contentEquals(guidTail)) { "Неизвестный WAV subformat" }
+            if (!bytes.copyOfRange(28, 40).contentEquals(guidTail)) {
+                throw UnsupportedFormat("Неизвестный WAV subformat")
+            }
             tag = bb.getInt(24)
         }
         format = tag
-        require(channels in 1..2 && sampleRate > 0) { "Неверная частота или число каналов WAV" }
-        require((format == 1 && bits in listOf(8, 16, 24, 32)) || (format == 3 && bits == 32)) {
-            "WAV поддерживает PCM 8/16/24/32 и float32"
+        require(channels > 0 && sampleRate > 0) { "Неверная частота или число каналов WAV" }
+        if (channels > 2 || !((format == 1 && bits in listOf(8, 16, 24, 32)) || (format == 3 && bits == 32))) {
+            throw UnsupportedFormat("WAV требует системный декодер: format=$format, bits=$bits, channels=$channels")
         }
         require(blockAlign == channels * (bits / 8)) { "Неверный размер кадра WAV" }
         remaining = dataSize

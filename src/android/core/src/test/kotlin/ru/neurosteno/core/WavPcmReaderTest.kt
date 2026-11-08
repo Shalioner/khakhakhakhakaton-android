@@ -83,6 +83,29 @@ class WavPcmReaderTest {
         assertEquals(0f, WavPcmReader(ByteArrayInputStream(bytes)).readMono()[0])
         val fmt = bytes.indexOf('f'.code.toByte())
         ByteBuffer.wrap(bytes).order(ByteOrder.LITTLE_ENDIAN).putShort(fmt + 8, 6)
-        assertFailsWith<IllegalArgumentException> { WavPcmReader(ByteArrayInputStream(bytes)) }
+        assertFailsWith<WavPcmReader.UnsupportedFormat> { WavPcmReader(ByteArrayInputStream(bytes)) }
+    }
+
+    @Test fun g711WavRequestsAnotherDecoder() {
+        for (format in listOf(6, 7)) {
+            val bytes = wav(8, 1, 8000)
+            val fmt = bytes.indexOf('f'.code.toByte())
+            ByteBuffer.wrap(bytes).order(ByteOrder.LITTLE_ENDIAN).putShort(fmt + 8, format.toShort())
+            assertFailsWith<WavPcmReader.UnsupportedFormat> { WavPcmReader(ByteArrayInputStream(bytes)) }
+        }
+    }
+
+    @Test fun multichannelPcmRequestsAnotherDecoder() {
+        assertFailsWith<WavPcmReader.UnsupportedFormat> {
+            WavPcmReader(ByteArrayInputStream(wav(16, 6, 48000)))
+        }
+    }
+
+    @Test fun malformedPcmDoesNotRequestFallback() {
+        val bytes = wav(16, 1, 16000)
+        val fmt = bytes.indexOf('f'.code.toByte())
+        ByteBuffer.wrap(bytes).order(ByteOrder.LITTLE_ENDIAN).putShort(fmt + 20, 0)
+        val error = assertFailsWith<IllegalArgumentException> { WavPcmReader(ByteArrayInputStream(bytes)) }
+        assertFalse(error is WavPcmReader.UnsupportedFormat)
     }
 }
