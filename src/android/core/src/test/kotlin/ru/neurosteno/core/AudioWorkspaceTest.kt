@@ -79,4 +79,22 @@ class AudioWorkspaceTest {
             root.delete()
         }
     }
+
+    @Test fun cleanupStaleRemovesLeftoversButKeepsOtherFiles() {
+        val root = java.nio.file.Files.createTempDirectory("ws-clean").toFile()
+        try {
+            val stale = java.io.File(root, "audio-123").apply { mkdirs() }
+            java.io.File(stale, "input.pcm").writeBytes(ByteArray(10))
+            java.io.File(root, "input.pcm").writeBytes(ByteArray(10))
+            java.io.File(root, "input_asr.pcm").writeBytes(ByteArray(10))
+            val keep = java.io.File(root, "last.json").apply { writeText("{}") }
+            AudioWorkspace.cleanupStale(root)
+            assertFalse(stale.exists())
+            assertFalse(java.io.File(root, "input.pcm").exists())
+            assertFalse(java.io.File(root, "input_asr.pcm").exists())
+            assertTrue(keep.exists())
+        } finally {
+            root.deleteRecursively()
+        }
+    }
 }

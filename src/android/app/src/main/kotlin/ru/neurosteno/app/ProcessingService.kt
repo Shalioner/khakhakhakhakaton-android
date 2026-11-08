@@ -68,6 +68,7 @@ class ProcessingService : Service() {
         job = scope.launch {
             try {
                 var lastEmit = 0L
+                ru.neurosteno.core.AudioWorkspace.cleanupStale(applicationContext.cacheDir)
                 Pipeline(applicationContext, llmFactory = LlmProvider.factory).run(uri, { stage, f ->
                     val prev = progress[stage]
                     progress[stage] = maxOf(f, prev ?: 0f) // прогресс стадии не откатывается назад

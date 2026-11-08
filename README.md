@@ -9,13 +9,13 @@ Android-приложение, которое **полностью на устр�
 ## Отчётные материалы (слайд 20)
 | # | Материал | Где |
 |---|---|---|
-| 1 | APK-файл | собирается командой ниже (`app-release.apk`, ~1.1 ГБ, arm64-v8a). В git не помещается (лимит GitHub 100 МБ) — публикуется в GitHub Releases ⏳ |
+| 1 | APK-файл | собирается командой ниже (`app-release.apk`, ~1.1 ГБ, arm64-v8a). В git не помещается (лимит GitHub 100 МБ) — публикуется в [GitHub Releases](https://github.com/Shalioner/khakhakhakhakaton-android/releases/latest) |
 | 2 | Исходный код | [src/android](src/android) |
 | 3 | Инструкция по установке и использованию | [src/README.md](src/README.md) |
 | 4 | Архитектура и модели | [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md), [ADR-0001 модели](docs/ADR/0001-models.md), [ADR-0002 LLM](docs/ADR/0002-llm.md) |
 | 5 | Ограничения | [docs/LIMITATIONS.md](docs/LIMITATIONS.md) |
 | 6 | Результаты собственных тестов | [docs/TEST_RESULTS.md](docs/TEST_RESULTS.md), [artifacts/test-results](artifacts/test-results) |
-| 7 | Видео демонстрации | [artifacts/demo](artifacts/demo) ⏳ |
+| 7 | Видео демонстрации | [artifacts/demo](artifacts/demo); видео — в [Releases](https://github.com/Shalioner/khakhakhakhakaton-android/releases/latest) |
 
 ## Соответствие требованиям
 | Требование (слайды 9–15) | Реализация |

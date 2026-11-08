@@ -307,6 +307,10 @@ private fun EditDialog(title: String, initial: String, singleLine: Boolean, onDi
                         error = "Не удалось сохранить: ${e.localizedMessage}"
                     } catch (e: org.json.JSONException) {
                         error = "Не удалось прочитать запись: ${e.localizedMessage}"
+                    } catch (e: kotlinx.coroutines.CancellationException) {
+                        throw e
+                    } catch (e: Exception) {
+                        error = "Ошибка: ${e.localizedMessage}"
                     } finally {
                         saving = false
                     }

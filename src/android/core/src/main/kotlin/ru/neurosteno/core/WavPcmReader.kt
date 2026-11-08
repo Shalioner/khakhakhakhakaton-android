@@ -13,6 +13,7 @@ class WavPcmReader(private val input: InputStream) {
     private val format: Int
     private val blockAlign: Int
     private var remaining: Long
+    private var totalBytes: Long = 0
     private var truncated = false
 
     init {
@@ -54,7 +55,12 @@ class WavPcmReader(private val input: InputStream) {
         }
         require(blockAlign == channels * (bits / 8)) { "Неверный размер кадра WAV" }
         remaining = dataSize
+        totalBytes = dataSize
     }
+
+    /** Доля прочитанных данных 0..1 (для индикатора прогресса). */
+    fun fraction(): Float =
+        if (totalBytes <= 0L) 0f else (1f - remaining.toFloat() / totalBytes).coerceIn(0f, 1f)
 
     fun readMono(maxFrames: Int = 4096): FloatArray {
         require(maxFrames in 1..65536)

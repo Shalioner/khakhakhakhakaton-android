@@ -15,4 +15,19 @@ class AudioWorkspace(cacheDir: File) : AutoCloseable {
         pcm.delete()
         directory.delete()
     }
+
+    companion object {
+        /**
+         * Удаляет рабочие каталоги прошлых запусков, оставшиеся после убийства процесса,
+         * и PCM старой схемы (cache/input*.pcm). Вызывать, когда обработка не идёт.
+         */
+        fun cleanupStale(cacheDir: File) {
+            cacheDir.listFiles()?.forEach { f ->
+                when {
+                    f.isDirectory && f.name.startsWith("audio-") -> f.deleteRecursively()
+                    f.isFile && f.name.startsWith("input") && (f.name.endsWith(".pcm") || f.name.endsWith(".pcm.raw")) -> f.delete()
+                }
+            }
+        }
+    }
 }

@@ -39,7 +39,12 @@ class AudioDecoder(private val context: Context) {
         val tmp = File(outFile.parentFile, outFile.name + ".raw")
         tmp.writeBytes(ByteArray(0))
         try {
-            val stats = context.contentResolver.openInputStream(uri)?.buffered()?.use { input ->
+            val stream = try {
+                context.contentResolver.openInputStream(uri)
+            } catch (e: Exception) {
+                throw AudioDecodeException("Не удалось открыть файл: ${e.message}", e)
+            }
+            val stats = stream?.buffered()?.use { input ->
                 input.mark(12)
                 val header = ByteArray(12)
                 var count = 0
@@ -51,7 +56,10 @@ class AudioDecoder(private val context: Context) {
                 input.reset()
                 if (count == 12 && String(header, 0, 4, Charsets.US_ASCII) == "RIFF" &&
                     String(header, 8, 4, Charsets.US_ASCII) == "WAVE") {
-                    decodeWav(input, tmp, isCancelled, onWarning)
+                    // Формат, который не умеет WavPcmReader (A-law, mu-law, ADPCM, >2 каналов…),
+                    // отдаём MediaExtractor, как раньше.
+                    val reader = try { ru.neurosteno.core.WavPcmReader(input) } catch (e: Exception) { null }
+                    reader?.let { decodeWav(it, tmp, progress, isCancelled, onWarning) }
                 } else null
             } ?: decodeToRaw(uri, tmp, progress, isCancelled, onWarning)
             normalize(tmp, outFile, stats, asrAgcFile, agcMaxGain)
@@ -170,13 +178,12 @@ class AudioDecoder(private val context: Context) {
     }
 
     private fun decodeWav(
-        input: java.io.InputStream, out: File, isCancelled: () -> Boolean, onWarning: (String) -> Unit,
+        reader: ru.neurosteno.core.WavPcmReader, out: File, progress: Progress?, isCancelled: () -> Boolean, onWarning: (String) -> Unit,
     ): Stats {
         val frameRms = FrameRmsAccumulator()
         var peak = 0f
         BufferedOutputStream(FileOutputStream(out), 1 shl 16).use { os ->
             try {
-                val reader = ru.neurosteno.core.WavPcmReader(input)
                 val resampler = StreamingResampler(reader.sampleRate, PcmFile.SAMPLE_RATE)
                 val dc = DcBlocker()
                 while (true) {
@@ -186,6 +193,7 @@ class AudioDecoder(private val context: Context) {
                     for (v in res) peak = maxOf(peak, abs(v))
                     frameRms.add(res)
                     writePcm16(os, res)
+                    progress?.onProgress(reader.fraction())
                     if (mono.isEmpty()) break
                 }
             } catch (e: InterruptedException) {
