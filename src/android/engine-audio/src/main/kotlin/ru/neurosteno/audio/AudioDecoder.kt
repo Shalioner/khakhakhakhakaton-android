@@ -58,7 +58,7 @@ class AudioDecoder(private val context: Context) {
                     String(header, 8, 4, Charsets.US_ASCII) == "WAVE") {
                     // Формат, который не умеет WavPcmReader (A-law, mu-law, ADPCM, >2 каналов…),
                     // отдаём MediaExtractor, как раньше.
-                    val reader = try { ru.neurosteno.core.WavPcmReader(input) } catch (e: Exception) { null }
+                    val reader = try { ru.neurosteno.core.WavPcmReader(input) } catch (e: Exception) { null } // в т.ч. WavPcmReader.UnsupportedFormat
                     reader?.let { decodeWav(it, tmp, progress, isCancelled, onWarning) }
                 } else null
             } ?: decodeToRaw(uri, tmp, progress, isCancelled, onWarning)
