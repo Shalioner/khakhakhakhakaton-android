@@ -65,10 +65,11 @@ class ClusterEmbeddings(modelPath: String, threads: Int, val cfg: ClusterPost.Co
                 tinyFrac = opt["cp-tiny-frac"]?.toFloat() ?: d.tinyFrac,
                 maxWindowsPerCluster = opt["cp-max-windows"]?.toInt() ?: d.maxWindowsPerCluster,
             )
-            // По умолчанию как в приложении. Для сравнения только с ClusterPost: --cp-recluster off.
+            // По умолчанию как в приложении. Включить Recluster: --cp-recluster on (или ключи).
             val rc = when (val spec = opt["cp-recluster"]) {
                 null -> pipeline.reclusterConfig()
                 "off" -> null
+                "on" -> pipeline.copy(reclusterEnabled = true).reclusterConfig()
                 else -> reclusterConfig(spec.split(',').filter { it.isNotBlank() }.associate {
                     it.substringBefore('=') to it.substringAfter('=')
                 })

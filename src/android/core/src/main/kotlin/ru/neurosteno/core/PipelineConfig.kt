@@ -59,8 +59,12 @@ data class PipelineConfig(
     /** Динамическая нормализация громкости речи (SpeechAgc) — только для входа ASR. */
     val agcEnabled: Boolean = false,
     val agcMaxGain: Float = 8f,
-    /** Повторная кластеризация окон pyannote + CAM++ после ClusterPost. */
-    val reclusterEnabled: Boolean = true,
+    /**
+     * Повторная кластеризация окон pyannote + CAM++ после ClusterPost (только запасной путь без Nemotron).
+     * Выключена по правилу 9: на testdata/test DER 25.1 → 24.6, но cpWER в ячейке «5 спикеров»
+     * 106.4 → 109.4 (+3 п.п.). Включение: bench `--cp-recluster on`.
+     */
+    val reclusterEnabled: Boolean = false,
     val reclusterGuardWindows: Int = 15,
     val reclusterMinWindows: Int = 10,
     val reclusterSilMin: Float = 0.1f,
