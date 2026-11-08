@@ -86,12 +86,22 @@ class WavPcmReaderTest {
         assertFailsWith<WavPcmReader.UnsupportedFormat> { WavPcmReader(ByteArrayInputStream(bytes)) }
     }
 
-    @Test fun g711WavRequestsAnotherDecoder() {
-        for (format in listOf(6, 7)) {
+    @Test fun decodesG711ALawAndMuLaw() {
+        // коды G.711: A-law 0xD5 = +8, 0x55 = −8, 0xAA = +32256; mu-law 0xFF = 0, 0x80 = +32124, 0x00 = −32124
+        val cases = mapOf(
+            6 to (byteArrayOf(0xD5.toByte(), 0x55, 0xAA.toByte()) to listOf(8, -8, 32256)),
+            7 to (byteArrayOf(0xFF.toByte(), 0x80.toByte(), 0x00) to listOf(0, 32124, -32124)),
+        )
+        for ((format, case) in cases) {
             val bytes = wav(8, 1, 8000)
             val fmt = bytes.indexOf('f'.code.toByte())
             ByteBuffer.wrap(bytes).order(ByteOrder.LITTLE_ENDIAN).putShort(fmt + 8, format.toShort())
-            assertFailsWith<WavPcmReader.UnsupportedFormat> { WavPcmReader(ByteArrayInputStream(bytes)) }
+            case.first.copyInto(bytes, bytes.size - 4) // data из 3 байт + байт выравнивания
+            val reader = WavPcmReader(ByteArrayInputStream(bytes))
+            assertEquals(8000, reader.sampleRate)
+            val x = reader.readMono()
+            assertEquals(case.second, x.map { Math.round(it * 32768f) }, "format $format")
+            assertEquals(0, reader.readMono().size)
         }
     }
 

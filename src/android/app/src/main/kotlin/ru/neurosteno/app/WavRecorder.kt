@@ -67,6 +67,9 @@ class WavRecorder(private val file: File) {
                         }
                     } finally {
                         runCatching { rec.stop() }
+                        // VOICE_RECOGNITION без AGC — поднимаем общий уровень, чтобы запись было слышно
+                        runCatching { ru.neurosteno.core.dsp.WavGain.normalizePcm16(out, 44, total) }
+                            .onFailure { Log.w(Pipeline.TAG, "record gain failed", it) }
                         out.seek(0); out.write(header(total, rate))
                     }
                 }

@@ -55,7 +55,8 @@ class WavPcmReader(private val input: InputStream) {
         }
         format = tag
         require(channels > 0 && sampleRate > 0) { "Неверная частота или число каналов WAV" }
-        if (channels > 2 || !((format == 1 && bits in listOf(8, 16, 24, 32)) || (format == 3 && bits == 32))) {
+        if (channels > 2 || !((format == 1 && bits in listOf(8, 16, 24, 32)) || (format == 3 && bits == 32) ||
+                (format in G711 && bits == 8))) {
             throw UnsupportedFormat("WAV требует системный декодер: format=$format, bits=$bits, channels=$channels")
         }
         require(blockAlign == channels * (bits / 8)) { "Неверный размер кадра WAV" }
@@ -92,6 +93,8 @@ class WavPcmReader(private val input: InputStream) {
             repeat(channels) {
                 sum += when {
                     format == 3 -> bb.float.also { require(it.isFinite()) { "WAV содержит NaN/Infinity" } }
+                    format == ALAW -> alaw(bb.get().toInt() and 255) / 32768f
+                    format == MULAW -> mulaw(bb.get().toInt() and 255) / 32768f
                     bits == 8 -> ((bb.get().toInt() and 255) - 128) / 128f
                     bits == 16 -> bb.short / 32768f
                     bits == 24 -> ((bb.get().toInt() and 255) or
@@ -100,6 +103,28 @@ class WavPcmReader(private val input: InputStream) {
                 }
             }
             sum / channels
+        }
+    }
+
+    private companion object {
+        const val ALAW = 6
+        const val MULAW = 7
+        val G711 = setOf(ALAW, MULAW)
+
+        /** G.711 A-law → PCM16 (ITU-T G.711). */
+        fun alaw(code: Int): Int {
+            val a = code xor 0x55
+            val exp = (a shr 4) and 7
+            var t = (a and 0x0f) shl 4
+            t = if (exp == 0) t + 8 else (t + 0x108) shl (exp - 1)
+            return if (a and 0x80 != 0) t else -t
+        }
+
+        /** G.711 mu-law → PCM16 (ITU-T G.711). */
+        fun mulaw(code: Int): Int {
+            val u = code.inv() and 0xff
+            val t = (((u and 0x0f) shl 3) + 0x84) shl ((u and 0x70) shr 4)
+            return if (u and 0x80 != 0) 0x84 - t else t - 0x84
         }
     }
 

@@ -169,7 +169,7 @@ class AudioDecoder(private val context: Context) {
                 onWarning("Аудио декодировано частично: ${e.message}")
                 return Stats(frameRms.result(), peak)
             }
-            throw AudioDecodeException("Ошибка декодирования: ${e.message}", e)
+            throw AudioDecodeException("Ошибка декодирования: ${e.message ?: e.javaClass.simpleName}. Попробуйте WAV PCM, MP3 или M4A", e)
         } finally {
             runCatching { codec?.stop() }
             runCatching { codec?.release() }
