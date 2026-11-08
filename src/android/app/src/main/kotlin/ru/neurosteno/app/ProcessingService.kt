@@ -68,7 +68,7 @@ class ProcessingService : Service() {
         job = scope.launch {
             try {
                 var lastEmit = 0L
-                val result = Pipeline(applicationContext, llmFactory = LlmProvider.factory).run(uri, { stage, f ->
+                Pipeline(applicationContext, llmFactory = LlmProvider.factory).run(uri, { stage, f ->
                     val prev = progress[stage]
                     progress[stage] = maxOf(f, prev ?: 0f) // прогресс стадии не откатывается назад
                     val now = System.currentTimeMillis()
@@ -77,11 +77,12 @@ class ProcessingService : Service() {
                         lastEmit = now
                         ProcessingRepository.state.value = ProcState.Running(name, progress.toMap(), started)
                     }
-                }) { ProcessingRepository.cancelled.get() }
-                if (ProcessingRepository.cancelled.get()) throw InterruptedException("cancelled")
-                saveLast(applicationContext, name, result)
-                val entry = HistoryStore.add(applicationContext, name, uri.toString(), result)
-                ProcessingRepository.state.value = ProcState.Done(name, result, entry.id)
+                }) { ProcessingRepository.cancelled.get() }.use { result ->
+                    if (ProcessingRepository.cancelled.get()) throw InterruptedException("cancelled")
+                    saveLast(applicationContext, name, result)
+                    val entry = HistoryStore.add(applicationContext, name, uri.toString(), result)
+                    ProcessingRepository.state.value = ProcState.Done(name, result, entry.id)
+                }
             } catch (e: InterruptedException) {
                 ProcessingRepository.state.value = ProcState.Idle
             } catch (e: AudioDecodeException) {
