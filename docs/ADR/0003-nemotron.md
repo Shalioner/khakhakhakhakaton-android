@@ -1,6 +1,6 @@
 # ADR-0003: Диаризация NVIDIA Nemotron-3-Diarization через свой JNI к onnxruntime C API
 
-Статус: модуль собран, в `Pipeline` не подключён (ждёт замеров на телефоне), 2026-11-07.
+Статус: принято, подключено в `Pipeline` по умолчанию после замеров на телефоне, 2026-11-07. Решение о включении и осознанное исключение из правила 9 описаны в конце документа.
 
 ## Контекст
 Спайк `docs/research/2026-11-07-nemotron-spike.md`: на живых русских звонках (DataHive, 8 файлов) текущая диаризация
@@ -28,7 +28,7 @@
   и `NOTICE` («model by NVIDIA», ссылки на оригинал и на экспорт). Их кладёт `fetch_models.py` в
   `app/src/main/assets/models/nemotron/`. Копия, которая хранится в git, лежит в
   `engine-nemotron/src/main/assets/models/nemotron/{LICENSE,NOTICE}`; при сборке побеждает asset app, содержимое
-  одинаковое. Те же сведения нужно внести в MODELS.md (docs-release).
+  одинаковое. Сводка моделей и лицензий — в [архитектуре](../ARCHITECTURE.md#зависимости).
 - **Рантайм**: своей ORT нет. `libonnxruntime.so` (ORT **1.28.2**, экспортирует `OrtGetApiBase`) уже лежит в APK из
   `sherpa-onnx-2.0.1.aar`. `engine-nemotron` зависит от того же `:sherpa-onnx-aar`, поэтому в APK одна копия ORT, и
   `pickFirst` не нужен.
@@ -84,7 +84,7 @@
 - RAM (ПК, Python): модели +144 МБ RSS, рабочая память 65–100 МБ. Телефон `[Проверить]`.
 
 ## Последствия
-- `Pipeline` и `BenchActivity` не менялись. Включение и fallback — отдельным патчем после замеров. Fallback-цепочка:
+- `Pipeline` и `BenchActivity` используют Nemotron по умолчанию после замеров. Fallback-цепочка:
   Nemotron → SherpaDiarizer → один спикер.
 - `ClusterPost` (CAM++ по турнам) с Nemotron не проверялся. В спайке `nem_e2e` считался с `base=off`; при включении
   Nemotron его стоит держать выключенным до отдельного A/B.
