@@ -17,7 +17,7 @@ Android-приложение, которое **полностью на устр�
 | 4 | Архитектура и модели | [docs/ARCHITECTURE.md](docs/ARCHITECTURE.md), [ADR-0001 модели](docs/ADR/0001-models.md), [ADR-0002 LLM](docs/ADR/0002-llm.md), [ADR-0003 Nemotron](docs/ADR/0003-nemotron.md) |
 | 5 | Ограничения | [docs/LIMITATIONS.md](docs/LIMITATIONS.md) |
 | 6 | Результаты собственных тестов | [docs/TEST_RESULTS.md](docs/TEST_RESULTS.md), [artifacts/test-results](artifacts/test-results) |
-| 7 | Видео демонстрации | [Работа приложения](https://github.com/Shalioner/khakhakhakhakaton-android/releases/download/v0.2.0/demo_v0.1.0.mp4), [запись с микрофона](https://github.com/Shalioner/khakhakhakhakaton-android/releases/download/v0.2.0/demo_mic_v0.1.0.mp4); сняты на v0.1.0, новые функции v0.2.0 не демонстрируют. [Описание](artifacts/demo/README.md) |
+| 7 | Видео демонстрации | [Работа приложения](https://github.com/Shalioner/khakhakhakhakaton-android/releases/download/v0.2.0/demo_v0.2.0.mp4), [запись с микрофона](https://github.com/Shalioner/khakhakhakhakaton-android/releases/download/v0.2.0/demo_mic_v0.2.0.mp4); сняты на v0.1.0, новые функции v0.2.0 не демонстрируют. [Описание](artifacts/demo/README.md) |
 
 ## Соответствие требованиям
 | Требование (слайды 9–15) | Реализация |
