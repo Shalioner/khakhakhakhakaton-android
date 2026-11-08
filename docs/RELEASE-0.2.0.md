@@ -14,9 +14,9 @@
 | 4 | Архитектура и применяемые модели | [ARCHITECTURE.md](ARCHITECTURE.md), [ADR-0001](ADR/0001-models.md), [ADR-0002](ADR/0002-llm.md), [ADR-0003](ADR/0003-nemotron.md) |
 | 5 | Ограничения | [LIMITATIONS.md](LIMITATIONS.md) и ограничения этой сборки ниже |
 | 6 | Собственные тесты | результаты новой сборки ниже; [исторические тесты](TEST_RESULTS.md), [исходные таблицы ПК](../artifacts/test-results) |
-| 7 | Видеодемонстрация | [demo_v0.1.0.mp4](https://github.com/Shalioner/khakhakhakhakaton-android/releases/download/v0.1.0/demo_v0.1.0.mp4), [demo_mic_v0.1.0.mp4](https://github.com/Shalioner/khakhakhakhakaton-android/releases/download/v0.1.0/demo_mic_v0.1.0.mp4); [описание демонстрации](../artifacts/demo/README.md) |
+| 7 | Видеодемонстрация | [demo_v0.1.0.mp4](https://github.com/Shalioner/khakhakhakhakaton-android/releases/download/v0.2.0/demo_v0.1.0.mp4), [demo_mic_v0.1.0.mp4](https://github.com/Shalioner/khakhakhakhakaton-android/releases/download/v0.2.0/demo_mic_v0.1.0.mp4); [описание демонстрации](../artifacts/demo/README.md) |
 
-Документы и результаты включены в `neurosteno-v0.2.0-report-materials.zip`. APK и исходники предоставлены отдельными файлами рядом с этим архивом. По решению владельца используются существующие видео из v0.1.0 по ссылкам выше: они не изменяются и заново не записываются.
+Документы и результаты включены в `neurosteno-v0.2.0-report-materials.zip`. APK и исходники предоставлены отдельными файлами рядом с этим архивом. По решению владельца те же видео v0.1.0 прикреплены также к v0.2.0 по ссылкам выше; содержимое не изменялось.
 
 ## Установка и ограничения сборки
 

@@ -8,8 +8,8 @@
 
 | материал | где |
 |---|---|
-| Видео работы приложения (Pixel 6a, Android 17, авиарежим), ~3 мин | [demo_v0.1.0.mp4](https://github.com/Shalioner/khakhakhakhakaton-android/releases/download/v0.1.0/demo_v0.1.0.mp4) |
-| Видео: запись с микрофона и её расшифровка (снято владельцем на Pixel 6a) | [demo_mic_v0.1.0.mp4](https://github.com/Shalioner/khakhakhakhakaton-android/releases/download/v0.1.0/demo_mic_v0.1.0.mp4) |
+| Видео работы приложения (Pixel 6a, Android 17, авиарежим), ~3 мин | [demo_v0.1.0.mp4](https://github.com/Shalioner/khakhakhakhakaton-android/releases/download/v0.2.0/demo_v0.1.0.mp4) |
+| Видео: запись с микрофона и её расшифровка (снято владельцем на Pixel 6a) | [demo_mic_v0.1.0.mp4](https://github.com/Shalioner/khakhakhakhakaton-android/releases/download/v0.2.0/demo_mic_v0.1.0.mp4) |
 | Пример экспортированного JSON | [example_transcript.json](example_transcript.json) |
 
 ## Что в видео (запись экрана со звуком устройства, 2026-11-07)
